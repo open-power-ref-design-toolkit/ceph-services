@@ -1,0 +1,15 @@
+task build (type : Exec) {
+     print 'Building Ceph'
+
+     //TODO: Project team need to implement build task. Please replace the ls command with the script/command that you need to execute to build the code
+     commandLine 'ls'
+    standardOutput = new ByteArrayOutputStream()
+    ext.output = {
+       return standardOutput.toString()
+    }
+}
+task do_all{
+  build.execute();
+}
+
+
