@@ -1,0 +1,12 @@
+task check (type : Exec) {
+    //Project team need to implement how to test. Remove the dummy ls command
+    print 'Running Check Task on ceph'
+    workingDir '.'
+    executable = "ls";
+    standardOutput = new ByteArrayOutputStream()
+    ext.output = {
+       return standardOutput.toString()
+    }
+
+}
+

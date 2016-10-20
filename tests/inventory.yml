@@ -1,0 +1,542 @@
+---
+
+hardware-mgmt-network: 192.168.0.0/20 # 4096 addresses
+
+ip-base-addr-mgmt-switches: 2 # 20 contiguous ip addresses will be reserved
+
+ip-base-addr-data-switches: 21 # 160 contiguous ip addresses will be reserved
+
+redundant-network: 1
+
+dns:
+
+     - dns1-ipv4: address1
+
+     - dns2-ipv4: address2
+
+userid-default: user
+
+password-default: passw0rd
+
+userid-mgmt-switch: user # applied to all mgmt switches
+
+password-mgmt-switch: passw0rd # applied to all mgmt switches
+
+userid-data-switch: user
+
+password-data-switch: passw0rd
+
+ssh-key:    #key or file location? This key is for all server types
+
+ssh-passphrase: pass phrase
+
+openstack-mgmt-network:
+
+   - addr: 172.29.236.0/22 #ipv4 openstack management network
+
+   - vlan: 10
+
+   - eth-port: eth10
+
+openstack-stg-network:
+   addr: 172.29.244.0/22 #ipv4 openstack storage network
+   vlan: 20
+   eth-port: eth10
+
+openstack-tenant-network:
+
+   - addr: 172.29.240.0/22 #ipv4 openstack tenant network
+
+   - vlan: 30 # vxlan vlan id
+
+   - eth-port: eth11
+
+ceph-replication-vlan: 40
+
+swift-replication-vlan: 50
+
+ 
+
+racks:
+
+   - rack-id: rack number or name
+
+     data-center: data center name
+
+     room: room id or name
+
+     row: row id or name
+
+   - rackid: rack number or name
+
+     data-center: data center name
+
+     room: room id or name
+
+     row: row id or name
+
+switches-mgmt:
+
+   - hostname: Device hostname
+
+     ipv4-addr: ipv4 address of the management port
+
+     userid: Linux user id for this controller
+
+     password: Linux password for this controller
+
+     rack-id: rack name or number
+
+     rack-eia: rack eia location
+
+     mtm: Machine type and model for this controller node
+
+     pn: Part number for this server node
+
+     sn: Serial number for this server node
+
+ 
+
+   - hostname: Device hostname
+
+     ipv4-addr: ipv4 address of the management port
+
+     userid: Linux user id for this controller
+
+     password: Linux password for this controller
+
+     rack-id: rack name or number
+
+     rack-eia: rack eia location
+
+     mtm: Machine type and model for this controller node
+
+     pn: Part number for this server node
+
+     sn: Serial number for this server node
+
+ 
+
+switches-data:
+
+   - hostname: Device hostname
+
+     ipv4-addr: ipv4 address of the management port
+
+     userid: Linux user id for this controller
+
+     password: Linux password for this controller
+
+     rack-id: rack name or number
+
+     rack-eia: rack eia location
+
+     mtm: Machine type and model for this controller node
+
+     pn: Part number for this server node
+
+     sn: Serial number for this server node
+
+ 
+
+   - hostname: Device hostname
+
+     ipv4-addr: ipv4 address of the management port
+
+     userid: Linux user id for this controller
+
+     password: Linux password for this controller
+
+     rack-id: rack name or number
+
+     rack-eia: rack eia location
+
+     mtm: Machine type and model for this controller node
+
+     pn: Part number for this server node
+
+     sn: Serial number for this server node
+
+ 
+nodes:
+    controllers:
+       - hostname: hostname #(associated with ipv4-addr below)
+         ipv4-addr: ipv4 address of this host # on the eth11 port???
+         userid: Linux user id for this controller
+         password: Linux password for this controller
+         cobbler-profile: name of cobbler profile
+         rack-id: rack name or number
+         rack-eia: rack eia location
+         mtm: Machine type and model for this controller node
+         pn: Part number for this server node
+         sn: Serial number for this server node
+         ipv4-ipmi: ipv4 address of the ipmi port
+         mac-ipmi: mac address of the ipmi port
+         userid-ipmi: userid for logging into the ipmi port
+         password-ipmi: password for logging into the ipmi port
+         userid-pxe: userid for logging into the pxe port
+         password-pxe: password for logging into the pxe port
+         ipv4-pxe: ipv4 address of the ipmi port
+         mac-pxe: mac address of the ipmi port
+         openstack-mgmt-addr: 172.29.236.2/22 #ipv4 openstack management network
+         openstack-stg-addr: 172.29.244.2/22 #ipv4 openstack storage network
+         openstack-tenant-addr: 172.29.240.2/22 #ipv4 openstack tenant network
+
+       - hostname: Linux hostname
+         ipv4-addr: ipv4 address of this host # on the eth11 port???
+         userid: Linux user id for this controller
+         password: Linux password for this controller
+         cobbler-profile: name of cobbler profile
+         rack-id: rack name or number
+         rack-eia: rack eia location
+         mtm: Machine type and model for this controller node
+         pn: Part number for this server node
+         sn: Serial number for this server node
+         ipv4-ipmi: ipv4 address of the ipmi port
+         mac-ipmi: mac address of the ipmi port
+         userid-ipmi: userid for logging into the ipmi port
+         password-ipmi: password for logging into the ipmi port
+         ipv4-ipmi: ipv4 address of the ipmi port
+         mac-ipmi: mac address of the ipmi port
+         userid-pxe: userid for logging into the pxe port
+         password-pxe: password for logging into the pxe port
+         ipv4-pxe: ipv4 address of the ipmi port
+         mac-pxe: mac address of the ipmi port
+         openstack-mgmt-addr: 172.29.236.3/22 #ipv4 openstack management network
+         openstack-stg-addr: 172.29.244.3/22 #ipv4 openstack storage network
+         openstack-tenant-addr: 172.29.240.3/22 #ipv4 openstack tenant network
+
+       - hostname: Linux hostname
+         ipv4-addr: ipv4 address of this host # on the eth11 port???
+         userid: Linux user id for this controller
+         password: Linux password for this controller
+         cobbler-profile: name of cobbler profile
+         rack-id: rack name or number
+         rack-eia: rack eia location
+         mtm: Machine type and model for this controller node
+         pn: Part number for this server node
+         sn: Serial number for this server node
+         ipv4-ipmi: ipv4 address of the ipmi port
+         mac-ipmi: mac address of the ipmi port
+         userid-ipmi: userid for logging into the ipmi port
+         password-ipmi: password for logging into the ipmi port
+         ipv4-ipmi: ipv4 address of the ipmi port
+         mac-ipmi: mac address of the ipmi port
+         userid-pxe: userid for logging into the pxe port
+         password-pxe: password for logging into the pxe port
+         ipv4-pxe: ipv4 address of the ipmi port
+         mac-pxe: mac address of the ipmi port
+         openstack-mgmt-addr: 172.29.236.3/22 #ipv4 openstack management network
+         openstack-stg-addr: 172.29.244.4/22 #ipv4 openstack storage network
+         openstack-tenant-addr: 172.29.240.3/22 #ipv4 openstack tenant network
+
+
+    compute: # OpenStack compute nodes
+
+       - hostname: Linux hostname
+
+         ipv4-addr: ipv4 address of this host # on the eth11 port???
+
+         userid: Linux user id for this controller
+
+         password: Linux password for this controller
+
+         cobbler-profile: name of cobbler profile
+
+         rack-id: rack name or number
+
+         rack-eia: rack eia location
+
+         mtm: Machine type and model for this controller node
+
+         pn: Part number for this server node
+
+         sn: Serial number for this server node
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-ipmi: userid for logging into the ipmi port
+
+         password-ipmi: password for logging into the ipmi port
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-pxe: userid for logging into the pxe port
+
+         password-pxe: password for logging into the pxe port
+
+         ipv4-pxe: ipv4 address of the ipmi port
+
+         mac-pxe: mac address of the ipmi port
+
+         openstack-mgmt-addr: 172.29.236.0/22 #ipv4 openstack management network
+
+         openstack-stg-addr: 172.29.244.4/22 #ipv4 openstack storage network
+
+         openstack-tenant-addr: 172.29.240.0/22 #ipv4 openstack tenant network
+
+     
+
+       - hostname: Linux hostname
+
+         ipv4-addr: ipv4 address of this host # on the eth11 port???
+
+         userid: Linux user id for this controller
+
+         password: Linux password for this controller
+
+         cobbler-profile: name of cobbler profile
+
+         rack-id: rack name or number
+
+         rack-eia: rack eia location
+
+         mtm: Machine type and model for this controller node
+
+         pn: Part number for this server node
+
+         sn: Serial number for this server node
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-ipmi: userid for logging into the ipmi port
+
+         password-ipmi: password for logging into the ipmi port
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-pxe: userid for logging into the pxe port
+
+         password-pxe: password for logging into the pxe port
+
+         ipv4-pxe: ipv4 address of the ipmi port
+
+         mac-pxe: mac address of the ipmi port
+
+         openstack-mgmt-addr: 172.29.236.0/22 #ipv4 penstack management network
+
+         openstack-stg-addr: 172.29.244.5/22 #ipv4 openstack storage network
+
+         openstack-tenant-addr: 172.29.240.0/22 #ipv4 openstack tenant network
+
+     
+
+    ceph-osd:
+
+       - hostname: Linux hostname
+
+         ipv4-addr: ipv4 address of this host # on the eth11 port???
+
+         userid: Linux user id for this controller
+
+         password: Linux password for this controller
+
+         cobbler-profile: name of cobbler profile
+
+         rack-id: rack name or number
+
+         rack-eia: rack eia location
+
+         mtm: Machine type and model for this controller node
+
+         pn: Part number for this server node
+
+         sn: Serial number for this server node
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-ipmi: userid for logging into the ipmi port
+
+         password-ipmi: password for logging into the ipmi port
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-pxe: userid for logging into the pxe port
+
+         password-pxe: password for logging into the pxe port
+
+         ipv4-pxe: ipv4 address of the ipmi port
+
+         mac-pxe: mac address of the ipmi port
+
+         openstack-mgmt-addr: 172.29.236.0/22 #ipv4 openstack management network
+
+         openstack-stg-addr: 172.29.244.0/22 #ipv4 openstack storage network
+
+         openstack-tenant-addr: 172.29.240.0/22 #ipv4 openstack tenant network
+
+         journal-devices:
+            - /dev/sdc
+            - /dev/sdd
+
+         osd-devices:
+            - /dev/sde
+            - /dev/sdf
+            - /dev/sdg
+            - /dev/sdh
+
+       - hostname: Linux hostname
+
+         ipv4-addr: ipv4 address of this host # on the eth11 port???
+
+         userid: Linux user id for this controller
+
+         password: Linux password for this controller
+
+         cobbler-profile: name of cobbler profile
+
+         rack-id: rack name or number
+
+         rack-eia: rack eia location
+
+         mtm: Machine type and model for this controller node
+
+         pn: Part number for this server node
+
+         sn: Serial number for this server node
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-ipmi: userid for logging into the ipmi port
+
+         password-ipmi: password for logging into the ipmi port
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-pxe: userid for logging into the pxe port
+
+         password-pxe: password for logging into the pxe port
+
+         ipv4-pxe: ipv4 address of the ipmi port
+
+         mac-pxe: mac address of the ipmi port
+
+         openstack-mgmt-addr: 172.29.236.0/22 #ipv4 openstack management network
+
+         openstack-stg-addr: 172.29.244.0/22 #ipv4 openstack storage network
+
+         openstack-tenant-addr: 172.29.240.0/22 #ipv4 openstack tenant network
+
+         journal-devices:
+            - /dev/sdc
+            - /dev/sdd
+
+         osd-devices:
+            - /dev/sde
+            - /dev/sdf
+            - /dev/sdg
+            - /dev/sdh
+
+    swift-storage:
+
+       - hostname: Linux hostname
+
+         ipv4-addr: ipv4 address of this host # on the eth11 port???
+
+         userid: Linux user id for this controller
+
+         password: Linux password for this controller
+
+         cobbler-profile: name of cobbler profile
+
+         rack-id: rack name or number
+
+         rack-eia: rack eia location
+
+         mtm: Machine type and model for this controller node
+
+         pn: Part number for this server node
+
+         sn: Serial number for this server node
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-ipmi: userid for logging into the ipmi port
+
+         password-ipmi: password for logging into the ipmi port
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-pxe: userid for logging into the pxe port
+
+         password-pxe: password for logging into the pxe port
+
+         ipv4-pxe: ipv4 address of the ipmi port
+
+         mac-pxe: mac address of the ipmi port
+
+         openstack-mgmt-addr: 172.29.236.0/22 #ipv4 openstack management network
+
+         openstack-stg-addr: 172.29.244.0/22 #ipv4 openstack storage network
+
+         openstack-tenant-addr: 172.29.240.0/22 #ipv4 openstack tenant network
+
+     
+
+       - hostname: Linux hostname
+
+         ipv4-addr: ipv4 address of this host # on the eth11 port???
+
+         userid: Linux user id for this controller
+
+         password: Linux password for this controller
+
+         cobbler-profile: name of cobbler profile
+
+         rack-id: rack name or number
+
+         rack-eia: rack eia location
+
+         mtm: Machine type and model for this controller node
+
+         pn: Part number for this server node
+
+         sn: Serial number for this server node
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-ipmi: userid for logging into the ipmi port
+
+         password-ipmi: password for logging into the ipmi port
+
+         ipv4-ipmi: ipv4 address of the ipmi port
+
+         mac-ipmi: mac address of the ipmi port
+
+         userid-pxe: userid for logging into the pxe port
+
+         password-pxe: password for logging into the pxe port
+
+         ipv4-pxe: ipv4 address of the ipmi port
+
+         mac-pxe: mac address of the ipmi port
+
+         openstack-mgmt-addr: 172.29.236.0/22 #ipv4 openstack management network
+
+         openstack-stg-addr: 172.29.244.0/22 #ipv4 openstack storage network
+
+         openstack-tenant-addr: 172.29.240.0/22 #ipv4 openstack tenant network
+
+...
