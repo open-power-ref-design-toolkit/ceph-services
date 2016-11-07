@@ -94,7 +94,7 @@ if [ $rc != 0 ]; then
 fi
 
 # This is the normalized genesis style input source of inventory covering all configurations
-if [ -r "$GENESIS_INVENTORY" ]; then
+if real_genesis_inventory_present; then
     echo "Using genesis inventory"
     ${PCLD_DIR}/scripts/ulysses_ceph/generate_ceph_ansible_input.py \
         --inventory $GENESIS_INVENTORY --output_directory $CEPH_DIR

@@ -40,7 +40,7 @@ echo "Running ceph playbooks"
 # Deploy site.yml
 cd $CEPH_DIR
 
-if [ -r "$GENESIS_INVENTORY" ]; then
+if real_genesis_inventory_present; then
     run_ansible site.yml
 else
     PUBLIC_SUBNET=$(ip r | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[0-9]\{1,2\}' | head -1)
