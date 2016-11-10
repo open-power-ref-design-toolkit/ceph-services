@@ -226,8 +226,8 @@ def _calculate_pg_count(osd_count, percent_data, growth_factor):
     # ((OSD#) / (Size)). This is to ensure even load / data distribution
     # by allocating at least one Primary or Secondary PG to every OSD for
     # every Pool.
-    min_calc = nearest_power_of_2(math.floor(osd_count / replication_count)
-                                  + 1)
+    min_calc = nearest_power_of_2(
+        math.floor(osd_count / replication_count) + 1)
     if pg_count < min_calc:
         pg_count = min_calc
     return int(pg_count)

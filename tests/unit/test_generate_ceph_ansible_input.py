@@ -144,8 +144,8 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         # Test unequal division 5 journals with 3 remainder
         journal_d_list = ['a', 'b', 'c', 'd', 'e']
         ret_val = test_mod._generate_journal_device_list(journal_d_list, 18)
-        self.assertEqual(['a'] * 4 + ['b'] * 4 + ['c'] * 4 + ['d'] * 3
-                         + ['e'] * 3, ret_val)
+        self.assertEqual(['a'] * 4 + ['b'] * 4 + ['c'] * 4 + ['d'] * 3 +
+                         ['e'] * 3, ret_val)
 
         # Test unequal division 5 journals with 4 remainder
         journal_d_list = ['a', 'b', 'c', 'd', 'e']
@@ -169,11 +169,12 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         osd_count.return_value = 50
         pg_count.return_value = 512
         inventory = {}
-        pools = test_mod._get_openstack_pools(inventory, 100, 25, 15, 60)
+        pools = test_mod._get_openstack_pools(inventory, 100, 15, 25, 60)
 
         pg_count.assert_has_calls([mock.call(50, .15, 100),
-                                   mock.call(50, .60, 100),
-                                   mock.call(50, .25, 100)])
+                                   mock.call(50, .25, 100),
+                                   mock.call(50, .60, 100)],
+                                  any_order=True)
         self.assertEqual(osd_count.call_count, 1)
 
         v_pools = {'openstack_glance_pool': {'name': 'images',
