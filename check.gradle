@@ -1,12 +1,8 @@
 task check (type : Exec) {
-    //Project team need to implement how to test. Remove the dummy ls command
-    print 'Running Check Task on ceph'
+    print 'Check Task on ceph-services'
     workingDir '.'
-    executable = "ls";
-    standardOutput = new ByteArrayOutputStream()
-    ext.output = {
-       return standardOutput.toString()
-    }
-
+    //Run default tox environment
+    executable = "tox";
+    args  "-r"
 }
 
