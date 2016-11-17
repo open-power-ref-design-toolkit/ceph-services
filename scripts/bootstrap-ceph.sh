@@ -17,7 +17,7 @@
 #    under the License.
 
 # This parameter controls the version of ceph-ansible that is installed
-CEPH_ANSIBLE_TAG=${CEPH_ANSIBLE_TAG:-"84dad9a77545eca9295a75f7cf1ae2c564f898ae"}
+CEPH_ANSIBLE_TAG=${CEPH_ANSIBLE_TAG:-"v2.0.0"}
 
 # This parameter controls which ceph inventory (group_vars) to be used for testing
 # purposes.  Presently, there is only one inventory supported.  aio_config_1 is an

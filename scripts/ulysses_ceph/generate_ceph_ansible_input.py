@@ -50,7 +50,8 @@ hard_coded_vars = {
                                '{{ ceph_stable_openstack_release_uca }}',
     'debian_ceph_packages': ['ceph', 'ceph-common'],
     'generate_fsid': True,
-    'journal_size': 10240}
+    'journal_size': 10240,
+    'nfs_file_gw': False}
 
 
 def _load_yml(name):
