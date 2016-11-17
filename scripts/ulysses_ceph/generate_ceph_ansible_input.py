@@ -111,12 +111,12 @@ def _generate_all_vars(inventory, growth_factor, vms_data_percent,
 def _generate_osds_vars(inventory):
     osd_vars = {}
     template = inventory['node-templates']['ceph-osd']
-    osd_vars['devices'] = template[OSD_DEVICE_KEY]
+    osd_vars['devices'] = template['domain-settings'][OSD_DEVICE_KEY]
 
-    if JOURNAL_DEVICE_KEY in template:
+    if JOURNAL_DEVICE_KEY in template['domain-settings']:
         osd_vars['raw_multi_journal'] = True
         osd_vars['raw_journal_devices'] = _generate_journal_device_list(
-            template[JOURNAL_DEVICE_KEY],
+            template['domain-settings'][JOURNAL_DEVICE_KEY],
             len(osd_vars['devices']))
     else:
         osd_vars['journal_collocation'] = True

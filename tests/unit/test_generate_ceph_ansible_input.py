@@ -191,8 +191,9 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
     def test_generate_osds_vars(self, gen_journal_list):
         # Test with journal list:
         inventory = {'node-templates':
-                     {'ceph-osd': {test_mod.OSD_DEVICE_KEY: ['a'],
-                                   test_mod.JOURNAL_DEVICE_KEY: ['b', 'c']}}}
+                     {'ceph-osd': {'domain-settings':
+                                   {test_mod.OSD_DEVICE_KEY: ['a'],
+                                    test_mod.JOURNAL_DEVICE_KEY: ['b', 'c']}}}}
         gen_journal_list.return_value = ['d']
         ret_vars = test_mod._generate_osds_vars(inventory)
         verify_vars = {'raw_multi_journal': True,
@@ -201,7 +202,8 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         self.assertDictEqual(ret_vars, verify_vars)
 
         # Test with co-located journals
-        osd_template = {'ceph-osd': {test_mod.OSD_DEVICE_KEY: ['a', 'b']}}
+        osd_template = {'ceph-osd': {'domain-settings':
+                                     {test_mod.OSD_DEVICE_KEY: ['a', 'b']}}}
         inventory = {'node-templates': osd_template}
         gen_journal_list.return_value = ['d']
         ret_vars = test_mod._generate_osds_vars(inventory)
