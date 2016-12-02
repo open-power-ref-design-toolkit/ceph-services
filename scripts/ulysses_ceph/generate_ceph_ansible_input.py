@@ -24,6 +24,7 @@ import yaml
 
 JOURNAL_DEVICE_KEY = 'journal-devices'
 OSD_DEVICE_KEY = 'osd-devices'
+CEPH_STANDALONE = 'ceph-standalone'
 
 openstack_keys = [
     {'name': 'client.glance',
@@ -42,19 +43,14 @@ openstack_pools = [
 
 
 hard_coded_vars = {
-    'monitor_interface': 'br_storage',
     'ceph_stable_uca': True,
     'ceph_stable_openstack_release_uca': 'mitaka',
     'ceph_stable_repo_uca': 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
     'ceph_stable_release_uca': '{{ ansible_lsb.codename }}-updates/'
                                '{{ ceph_stable_openstack_release_uca }}',
     'debian_ceph_packages': ['ceph', 'ceph-common'],
-    'delete_default_pool': True,
     'generate_fsid': True,
-    'journal_size': 10240,
-    'openstack_config': True,
-    'openstack_keys': openstack_keys,
-    'openstack_pools': openstack_pools}
+    'journal_size': 10240}
 
 
 def _load_yml(name):
@@ -77,6 +73,44 @@ def _write_string(filename, contents):
     hosts_file.close()
 
 
+def _get_storage_network(inventory):
+    if 'reference-architecture' in inventory.keys():
+        if CEPH_STANDALONE in inventory['reference-architecture']:
+            return 'ceph-public-storage'
+    return 'openstack-stg'
+
+
+def _init_default_values(inventory):
+    config_vars = copy.deepcopy(hard_coded_vars)
+    storage_net_name = _get_storage_network(inventory)
+    storage_net = inventory['networks'][storage_net_name]
+    mon_interface = storage_net.get('bridge')
+    if not mon_interface:
+        mon_interface = storage_net.get('eth-port')
+    config_vars['monitor_interface'] = mon_interface
+    if 'reference-architecture' in inventory.keys():
+        if CEPH_STANDALONE in inventory['reference-architecture']:
+            config_vars['delete_default_pool'] = False
+            return config_vars
+    config_vars['delete_default_pool'] = True
+    config_vars['openstack_config'] = True
+    config_vars['openstack_keys'] = openstack_keys
+    config_vars['openstack_pools'] = openstack_pools
+    return config_vars
+
+
+def _get_osd_ips(inventory):
+    osd_network = '%s-addr' % _get_storage_network(inventory)
+    return [host[osd_network]
+            for host in inventory['nodes']['ceph-osd']]
+
+
+def _get_mon_ips(inventory):
+    osd_network = '%s-addr' % _get_storage_network(inventory)
+    return [host[osd_network]
+            for host in inventory['nodes']['controllers']]
+
+
 def generate_files(root_dir, inventory_file, growth_factor, vms_data_percent,
                    images_data_percent, volumes_data_percent):
     inventory = _load_yml(inventory_file)
@@ -91,20 +125,23 @@ def generate_files(root_dir, inventory_file, growth_factor, vms_data_percent,
 
 def _generate_all_vars(inventory, growth_factor, vms_data_percent,
                        images_data_percent, volumes_data_percent):
-    storage_net = inventory['networks']['openstack-stg']['addr']
+    all_vars = _init_default_values(inventory)
+    pub_storage = _get_storage_network(inventory)
+    storage_net = inventory['networks'][pub_storage]['addr']
     cluster_net = '{{ public_network }}'
+
     if 'ceph-replication' in inventory['networks']:
         cluster_net = inventory['networks']['ceph-replication']['addr']
 
-    openstack_pools = _get_openstack_pools(inventory, growth_factor,
-                                           vms_data_percent,
-                                           images_data_percent,
-                                           volumes_data_percent)
-
-    all_vars = copy.deepcopy(hard_coded_vars)
+    if 'reference-architecture' in inventory.keys():
+        if CEPH_STANDALONE not in inventory['reference-architecture']:
+            openstack_pools = _get_openstack_pools(inventory, growth_factor,
+                                                   vms_data_percent,
+                                                   images_data_percent,
+                                                   volumes_data_percent)
+            all_vars.update(openstack_pools)
     all_vars['public_network'] = storage_net
     all_vars['cluster_network'] = cluster_net
-    all_vars.update(openstack_pools)
     return all_vars
 
 
@@ -169,13 +206,9 @@ def _validate_devices_lists(osd_templates, device_key):
 
 def _generate_hosts_file(inventory):
     # Get monitor IPs
-    mon_ips = [host['openstack-stg-addr']
-               for host in inventory['nodes']['controllers']]
-
+    mon_ips = _get_mon_ips(inventory)
     # Get OSD IPs
-    osd_ips = [host['openstack-stg-addr']
-               for host in inventory['nodes']['ceph-osd']]
-
+    osd_ips = _get_osd_ips(inventory)
     file_contents_list = ['[mons]'] + mon_ips + ['\n[osds]'] + osd_ips
     return '\n'.join(file_contents_list)
 

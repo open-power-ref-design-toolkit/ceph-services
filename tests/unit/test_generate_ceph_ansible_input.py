@@ -37,16 +37,57 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
 
     @mock.patch(TEST_MODULE_STRING + '._get_openstack_pools')
     def test_generate_all_vars(self, get_pools):
+        # Test private cloud with bridge as monitor interface
+        ref_arch = ['private-compute-cloud']
         get_pools.return_value = {'poolname': 'a pool'}
-        inventory = {'networks': {'openstack-stg': {'addr': '172.29.244.0/22'}}
-                     }
+        inventory = {'networks': {'openstack-stg':
+                                  {'addr': '172.29.244.0/22',
+                                   'bridge': 'br-storage'}},
+                     'reference-architecture': ref_arch}
         growth_factor = 200
+        os_keys = copy.deepcopy(test_mod.openstack_keys)
+        os_pools = copy.deepcopy(test_mod.openstack_pools)
         verify_vars = copy.deepcopy(test_mod.hard_coded_vars)
         verify_vars.update(get_pools.return_value)
+        verify_vars['delete_default_pool'] = True
         verify_vars['public_network'] = '172.29.244.0/22'
+        verify_vars['cluster_network'] = '{{ public_network }}'
+        verify_vars['openstack_config'] = True
+        verify_vars['ceph_stable_uca'] = True
+        verify_vars['openstack_keys'] = os_keys
+        verify_vars['openstack_pools'] = os_pools
+        verify_vars['monitor_interface'] = 'br-storage'
+        all_vars = test_mod._generate_all_vars(inventory, growth_factor,
+                                               1, 1, 1)
+        self._assert_invalid_config(ref_arch, verify_vars)
+        self.assertDictEqual(verify_vars, all_vars)
+
+        # Test again with cluster net set
+        inventory['networks']['ceph-replication'] = {'addr': '172.29.100.0/22'}
+        all_vars = test_mod._generate_all_vars(inventory, growth_factor,
+                                               1, 1, 1)
+
+        verify_vars['cluster_network'] = '172.29.100.0/22'
+        self.assertDictEqual(verify_vars, all_vars)
+
+        # Test ceph-standalone with eth-port as monitor interface
+        ref_arch = ['ceph-standalone']
+        inventory = {'networks': {'ceph-public-storage':
+                                  {'addr': '172.26.244.0/22',
+                                   'eth-port': 'eth11'}},
+                     'reference-architecture': ref_arch,
+                     'nodes': {'controllers': [{'hostname': ['sm15']}],
+                               'ceph-osd': [{'hostname': 'osd1',
+                                             'ceph-public-storage-addr':
+                                             '172.26.244.0/22'}]}}
+        growth_factor = 200
+        verify_vars = test_mod._init_default_values(inventory)
+        verify_vars['delete_default_pool'] = False
+        verify_vars['public_network'] = '172.26.244.0/22'
         verify_vars['cluster_network'] = '{{ public_network }}'
         all_vars = test_mod._generate_all_vars(inventory, growth_factor,
                                                1, 1, 1)
+        self._assert_invalid_config(ref_arch, verify_vars)
         self.assertDictEqual(verify_vars, all_vars)
 
         # Test again with cluster net set
@@ -55,6 +96,84 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
                                                1, 1, 1)
         verify_vars['cluster_network'] = '172.29.100.0/22'
         self.assertDictEqual(verify_vars, all_vars)
+
+    def _assert_invalid_config(self, ref_arch, ref_config_settings):
+        if 'private-compute-cloud' in ref_arch:
+            self.assertIn('openstack_keys', ref_config_settings)
+            self.assertIn('openstack_pools', ref_config_settings)
+            self.assertIn('openstack_config', ref_config_settings)
+        elif 'ceph-standalone' in ref_arch:
+            self.assertNotIn('openstack_config', ref_config_settings)
+            self.assertNotIn('openstack_keys', ref_config_settings)
+            self.assertNotIn('openstack_pools', ref_config_settings)
+
+    def test_init_default_values(self):
+        inventory = {'reference-architecture': ['private-compute-cloud'],
+                     'networks': {'openstack-stg': {'bridge': 'br-storage',
+                                                    'eth-port': 'eth11'}}}
+        verify_vars = test_mod._init_default_values(inventory)
+        self.assertEquals(verify_vars['monitor_interface'], 'br-storage')
+        self.assertTrue(verify_vars['delete_default_pool'])
+        self.assertTrue(verify_vars['openstack_config'])
+        self.assertTrue(verify_vars['ceph_stable_uca'])
+        inventory = {'reference-architecture': ['ceph-standalone'],
+                     'networks': {'ceph-public-storage': {'eth-port':
+                                                          'eth11'}}}
+        verify_vars = test_mod._init_default_values(inventory)
+        self.assertFalse(verify_vars['delete_default_pool'])
+        self.assertEquals(verify_vars['monitor_interface'], 'eth11')
+
+    def test_get_storage_network(self):
+        inventory = {'reference-architecture': ['ceph-standalone']}
+        self.assertEqual(test_mod._get_storage_network(inventory),
+                         'ceph-public-storage')
+        inventory = {'reference-architecture': ['private-compute-cloud']}
+        self.assertEqual(test_mod._get_storage_network(inventory),
+                         'openstack-stg')
+
+    def test_get_osd_ips(self):
+        ref_arch = ['ceph-standalone']
+        inventory = {'reference-architecture': ref_arch,
+                     'nodes': {'ceph-osd': [{'hostname': 'osd1',
+                                             'ceph-public-storage-addr':
+                                             '172.26.244.1'},
+                                            {'hostname': 'osd2',
+                                             'ceph-public-storage-addr':
+                                             '172.26.244.2'}]}}
+        self.assertEquals(test_mod._get_osd_ips(inventory),
+                          ['172.26.244.1', '172.26.244.2'])
+        ref_arch = ['private-compute-cloud']
+        inventory = {'reference-architecture': ref_arch,
+                     'nodes': {'ceph-osd': [{'openstack-stg-addr':
+                                             '172.26.244.1'}]}}
+        self.assertEqual(test_mod._get_osd_ips(inventory),
+                         ['172.26.244.1'])
+
+    def test_get_mon_ips(self):
+        inventory = {'reference-architecture': ['ceph-standalone'],
+                     'nodes': {'controllers': [{'hostname': 'controller1',
+                                                'ceph-public-storage-addr':
+                                                '172.29.244.2'},
+                                               {'hostname': 'controller2',
+                                                'ceph-public-storage-addr':
+                                                '172.29.244.3'},
+                                               {'hostname': 'controller3',
+                                                'ceph-public-storage-addr':
+                                                '172.29.244.4'}]}}
+        self.assertEqual(test_mod._get_mon_ips(inventory),
+                         ['172.29.244.2', '172.29.244.3', '172.29.244.4'])
+        inventory = {'reference-architecture': ['private-compute-cloud'],
+                     'nodes': {'controllers': [{'hostname': 'controller1',
+                                                'openstack-stg-addr':
+                                                '172.29.244.2'},
+                                               {'hostname': 'controller2',
+                                                'openstack-stg-addr':
+                                                '172.29.244.3'},
+                                               {'hostname': 'controller3',
+                                                'openstack-stg-addr':
+                                                '172.29.244.4'}]}}
+        self.assertEqual(test_mod._get_mon_ips(inventory),
+                         ['172.29.244.2', '172.29.244.3', '172.29.244.4'])
 
     def test_get_osd_count(self):
         osd_devices = ['/dev/sde',
@@ -212,14 +331,56 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         self.assertDictEqual(ret_vars, verify_vars)
 
     def test_generate_hosts_file(self):
-        the_nodes = {'controllers': [{'openstack-stg-addr': '172.29.244.2'},
-                                     {'openstack-stg-addr': '172.29.244.3'},
-                                     {'openstack-stg-addr': '172.29.244.4'}
-                                     ],
-                     'ceph-osd': [{'openstack-stg-addr': '172.29.244.5'},
-                                  {'openstack-stg-addr': '172.29.244.6'},
-                                  {'openstack-stg-addr': '172.29.244.7'}]}
+        the_nodes = {'controllers': [{'hostname': 'controller1',
+                                      'openstack-stg-addr': '172.29.244.2'},
+                                     {'hostname': 'controller2',
+                                      'openstack-stg-addr': '172.29.244.3'},
+                                     {'hostname': 'controller3',
+                                      'openstack-stg-addr': '172.29.244.4'}],
+                     'ceph-osd': [{'hostname': 'ceph-osd1',
+                                   'openstack-stg-addr': '172.29.244.5'},
+                                  {'hostname': 'ceph-osd2',
+                                   'openstack-stg-addr': '172.29.244.6'},
+                                  {'hostname': 'ceph-osd3',
+                                   'openstack-stg-addr':
+                                   '172.29.244.7'}]}
+        inventory = {'reference-architecture': ['private-compute-cloud'],
+                     'nodes': the_nodes}
         hosts_file = test_mod._generate_hosts_file({'nodes': the_nodes})
+        expected_file = ('[mons]\n'
+                         '172.29.244.2\n'
+                         '172.29.244.3\n'
+                         '172.29.244.4\n'
+                         '\n[osds]\n'
+                         '172.29.244.5\n'
+                         '172.29.244.6\n'
+                         '172.29.244.7')
+        self.assertEqual(hosts_file, expected_file)
+        ref_arch = ['ceph-standalone']
+        the_nodes = {'controllers': [{'hostname': 'controller1',
+                                      'ceph-public-storage-addr':
+                                      '172.29.244.2'},
+                                     {'hostname': 'controller2',
+                                      'ceph-public-storage-addr':
+                                      '172.29.244.3'},
+                                     {'hostname': 'controller3',
+                                      'ceph-public-storage-addr':
+                                      '172.29.244.4'}],
+                     'ceph-osd': [{'hostname': 'ceph-osd1',
+                                   'ceph-public-storage-addr':
+                                   '172.29.244.5'},
+                                  {'hostname': 'ceph-osd2',
+                                   'ceph-public-storage-addr':
+                                   '172.29.244.6'},
+                                  {'hostname': 'ceph-osd3',
+                                   'ceph-public-storage-addr':
+                                   '172.29.244.7'}]}
+        inventory = {'networks': {'ceph-public-storage':
+                                  {'addr': '172.26.244.0/22',
+                                   'eth-port': 'eth11'}},
+                     'reference-architecture': ref_arch,
+                     'nodes': the_nodes}
+        hosts_file = test_mod._generate_hosts_file(inventory)
         expected_file = ('[mons]\n'
                          '172.29.244.2\n'
                          '172.29.244.3\n'
