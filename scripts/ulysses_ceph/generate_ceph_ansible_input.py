@@ -268,8 +268,9 @@ def _calculate_pg_count(osd_count, percent_data, growth_factor):
 
 def _get_osd_count(inventory):
     ceph_osd_tmpl = inventory['node-templates']['ceph-osd']
+    domain_settings = ceph_osd_tmpl['domain-settings']
     num_osd_nodes = len(inventory['nodes']['ceph-osd'])
-    count = len(ceph_osd_tmpl[OSD_DEVICE_KEY]) * num_osd_nodes
+    count = len(domain_settings[OSD_DEVICE_KEY]) * num_osd_nodes
     return count
 
 

@@ -182,7 +182,8 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
                        '/dev/sdh',
                        '/dev/sdi']
         osd_tmpl = {test_mod.OSD_DEVICE_KEY: osd_devices}
-        inventory = {'node-templates': {'ceph-osd': osd_tmpl},
+        domain_settings = {'domain-settings': osd_tmpl}
+        inventory = {'node-templates': {'ceph-osd': domain_settings},
                      'nodes': {'ceph-osd': ['1', '2', '3', '4', '5', '6']}}
 
         # Test case when a each template has the same number of devices
