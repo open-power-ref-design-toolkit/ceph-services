@@ -1,0 +1,50 @@
+---
+# Copyright 2016 IBM Corp.
+#
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+  - name: Set starting values for device lists.
+    set_fact:
+      ceph_osd_shortcut: {}
+      ds_shortcut: {}
+      journal_devices: {}
+      osd_devices: {}
+
+  - name: Set ceph_osd_shortcut.
+    set_fact:
+        ceph_osd_shortcut: "{{ node_templates['ceph-osd'] | default({}) }}"
+    when: node_templates['ceph-osd'] is defined
+
+  - name: Set ds_shortcut.
+    set_fact:
+        ds_shortcut: "{{ ceph_osd_shortcut['domain-settings'] | default({}) }}"
+
+  - name: Set journal_devices.
+    set_fact:
+      journal_devices: "{{ ds_shortcut['journal-devices'] | default({}) }}"
+
+  - name: Set osd_devices.
+    set_fact:
+      osd_devices: "{{ ds_shortcut['osd-devices'] | default({}) }}"
+
+  - name: Print device list settings.
+    debug:
+      msg: "{{ item }}"
+    with_items:
+      - "ceph_osd_shortcut={{ ceph_osd_shortcut }}"
+      - "ds_shortcut={{ ds_shortcut }}"
+      - "journal_devices={{ journal_devices }}"
+      - "osd_devices={{ osd_devices }}"
