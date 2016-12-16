@@ -44,7 +44,7 @@ openstack_pools = [
 
 hard_coded_vars = {
     'ceph_stable_uca': True,
-    'ceph_stable_openstack_release_uca': 'mitaka',
+    'ceph_stable_openstack_release_uca': 'newton',
     'ceph_stable_repo_uca': 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
     'ceph_stable_release_uca': '{{ ansible_lsb.codename }}-updates/'
                                '{{ ceph_stable_openstack_release_uca }}',
