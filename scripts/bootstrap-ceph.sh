@@ -28,9 +28,6 @@ CEPH_ANSIBLE_TAG=${CEPH_ANSIBLE_TAG:-"v2.0.0"}
 # controlled by this variable
 TEST_CONFIG=${CICD_INVENTORY:-"etc/test_config/aio_openstack_with_ceph"}
 
-# User can override the location of the cluster-genesis project.
-export GENESIS_DIR=${GENESIS_DIR:-"/opt/cluster-genesis"}
-
 if [ "$1" == "--help" ]; then
     echo "Usage: bootstrap-ceph.sh"
     exit 1
@@ -83,17 +80,6 @@ if [ "$INSTALL" == "True" ] && [ -d $PCLD_DIR/diffs ]; then
     done
     popd >/dev/null 2>&1
 fi
-
-pushd playbooks >/dev/null 2>&1
-DY_INVENTORY_DIR="${GENESIS_DIR}/scripts/python/yggdrasil"
-ansible-playbook -i ${DY_INVENTORY_DIR}/inventory.py pre-deploy.yml
-rc=$?
-if [ $rc != 0 ]; then
-    echo "playbooks/pre-deploy.yml failed, rc=$rc"
-    exit 1
-fi
-popd >/dev/null 2>&1
-
 
 # Setup site.yml playbook for use
 cp ${CEPH_DIR}/site.yml.sample ${CEPH_DIR}/site.yml
