@@ -44,7 +44,8 @@ function append_disk_list
     typeset disk_name=$1
     typeset -i by_disk_name=0
 
-    if [[ "$disk_name" == */dev/sd* ]]; then
+    if [[ "$disk_name" == */dev/sd* ]] ||
+       [[ "$disk_name" == */dev/vd* ]]; then
         by_disk_name=1
     fi
 
@@ -68,8 +69,8 @@ function adjust_disk_list
     fi
 
     # Initially those names may be unsorted but
-    # we want to sort them by sdX name.
-    cat ${prep_file} | grep "^sd" | uniq | sort >${sort_file}
+    # we want to sort them by sdX and vdX name.
+    cat ${prep_file} |  grep -E "^sd|^vd" | uniq | sort >${sort_file}
 }
 
 function read_adjusted_disk_list
@@ -190,7 +191,7 @@ function zap_disk_list
     do
         # Ensure these cleanup steps only ever execute once per disk.
         # Otherwise for the case where a disk is present on more than
-        # one disk_list (account/container/object) it would be setup
+        # one disk_list (journal/osd) it would be setup
         # and cleaned up once per list instead of once per disk.
         if [[ -n $already_cleaned_disk_list ]] &&
            [[ $already_cleaned_disk_list =~ $disk_name ]]; then
