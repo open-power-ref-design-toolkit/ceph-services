@@ -294,7 +294,7 @@ def main():
                               ' This is typically the root of ceph-ansible.'))
 
     growth_factor_help = (
-        'A integer factor of how much the Ceph cluster is  expected to grow '
+        'A integer factor of how much the Ceph cluster is expected to grow '
         'in the foreseeable future.\n'
         'Example values:\n'
         '100 - if number of disks in the cluster is not expected to increase\n'
@@ -314,24 +314,24 @@ def main():
                         required=False,
                         type=int,
                         default=25,
-                        help=('The percentage of the cluster data which will'
-                              'be contained in the virtual machines pool,'
+                        help=('The percentage of the cluster data which will '
+                              'be contained in the virtual machines pool, '
                               'specified as an integer. Example: 25 for 25%%'))
     parser.add_argument('--images_pool_percent',
                         dest='images_pool_percent',
                         required=False,
                         type=int,
                         default=15,
-                        help=('The percentage of the cluster data which will'
-                              'be contained in the images pool,'
+                        help=('The percentage of the cluster data which will '
+                              'be contained in the images pool, '
                               'specified as an integer. Example: 25 for 25%%'))
     parser.add_argument('--volumes_pool_percent',
                         dest='volumes_pool_percent',
                         required=False,
                         type=int,
                         default=60,
-                        help=('The percentage of the cluster data which will'
-                              'be contained in the volumes pool,'
+                        help=('The percentage of the cluster data which will '
+                              'be contained in the volumes pool, '
                               'specified as an integer. Example: 25 for 25%%'))
 
     # Handle error cases before attempting to parse
