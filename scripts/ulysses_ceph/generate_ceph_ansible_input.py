@@ -294,7 +294,7 @@ def main():
                               ' This is typically the root of ceph-ansible.'))
 
     growth_factor_help = (
-        'A integer factor of how much the Ceph cluster is expected to grow '
+        'An integer factor of how much the Ceph cluster is expected to grow '
         'in the foreseeable future.\n'
         'Example values:\n'
         '100 - if number of disks in the cluster is not expected to increase\n'
