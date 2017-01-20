@@ -61,7 +61,7 @@ The calculation can be re-run with different parameters before the Ceph cluster 
 To do this, run the following command after bootstrap-cluster and before create-cluster::
 
     ./scripts/ulysses_ceph/generate_ceph_ansible_input.py \
-       --inventory /var/oprc/inventory.yml --output_directory /opt/ceph-services \
+       --inventory /var/oprc/inventory.yml --output_directory /opt/ceph-ansible \
        --growth_factor 100 --vms_pool_percent 25 \
        --images_pool_percent 15 --volumes_pool_percent 60
 
