@@ -1,0 +1,34 @@
+diff -Naur a/opt/ceph-ansible/roles/ceph-osd/tasks/activate_osds.yml b/opt/ceph-ansible/roles/ceph-osd/tasks/activate_osds.yml
+--- a/opt/ceph-ansible/roles/ceph-osd/tasks/activate_osds.yml	2017-01-23 18:20:57.679994077 +0000
++++ b/opt/ceph-ansible/roles/ceph-osd/tasks/activate_osds.yml	2017-01-23 18:19:57.479144578 +0000
+@@ -2,6 +2,30 @@
+ # NOTE (leseb) : this task is for disk devices only because of the explicit use of the first
+ # partition.
+ 
++- name: check if ceph user exists
++  command: getent passwd ceph
++  register: ceph_user_exists
++
++- name: chown osd.0.log for ceph user if ceph user exists
++  file:
++    path: /var/log/ceph/{{ cluster }}-osd.0.log
++    owner: ceph
++    group: ceph
++  when:
++    - ceph_user_exists.rc == 0
++
++- name: find pid of ceph osd 0
++  shell: ps -ef | grep ceph-osd | grep "id 0 " | grep -v grep | awk '{print $2}'
++  register: osd0_pid
++  when:
++    - ceph_user_exists.rc == 0
++
++- name: signal ceph osd 0 to reopen the log file
++  command: kill -1 {{ osd0_pid.stdout_lines[0] }}
++  when:
++    - ceph_user_exists.rc == 0
++    - osd0_pid.stdout_lines|length > 0
++
+ - name: automatically activate osd disk(s) without partitions
+   command: ceph-disk activate "/dev/{{ item.key | regex_replace('^(\/dev\/cciss\/c[0-9]{1}d[0-9]{1})$', '\\1p') }}1"
+   ignore_errors: true
