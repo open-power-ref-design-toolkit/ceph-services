@@ -1,5 +1,5 @@
 ---
-# Copyright 2016 IBM Corp.
+# Copyright 2016,2017 IBM Corp.
 #
 # All Rights Reserved.
 #
@@ -17,4 +17,6 @@
 
 - include: setup_storage_install.yml
 - include: setup_storage_facts.yml
+- include: setup_storage_sanity.yml
+  when: not skip_missing_disk_sanity
 - include: setup_storage_init.yml

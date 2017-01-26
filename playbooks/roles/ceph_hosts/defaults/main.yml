@@ -1,5 +1,5 @@
 ---
-# Copyright 2016 IBM Corp.
+# Copyright 2016, 2017 IBM Corp.
 #
 # All Rights Reserved.
 #
@@ -20,3 +20,7 @@
 # on the ceph hosts.
 execute_dir: /tmp/cephdiscovery
 
+# Set to true in order to override the sanity checks that cause
+# the playbook to fail when a specified disk is not present on
+# a ceph osd host.
+skip_missing_disk_sanity: false

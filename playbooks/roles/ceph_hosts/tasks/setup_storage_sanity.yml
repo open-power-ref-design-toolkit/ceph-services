@@ -1,0 +1,41 @@
+---
+# Copyright 2017 IBM Corp.
+#
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+  # Search for the device name in the first column of lsblk output.
+  #
+  # The substring on item (e.g. item[5:]) is to skip over "/dev/"
+  # in the name.  The "$" after the device name ensures that a newline
+  # must follow immediately after the device name in order for the grep
+  # to succeed.  This ensures that we do not mistake the device name
+  # we're looking for (e.g. vdd) for a partition (e.g. vdd1) or some
+  # other device with a similar name (e.g. vdda).
+  #
+  # Use ignore errors and register the result, then check
+  # the result in the assert below, otherwise the assert msg
+  # will not be reached or displayed.
+  - name: find specified devices in lsblk output
+    shell: lsblk | awk '{print $1}' | grep -v NAME | grep -E "{{ item[5:] }}$"
+    register: lsblk_result
+    ignore_errors: true
+    with_items:
+      - "{{ journal_devices }}"
+      - "{{ osd_devices }}"
+
+  - assert:
+      that:
+        - lsblk_result | success
+      msg: "One of the specified disks is not present"
