@@ -7,6 +7,7 @@ cluster-genesis project which orchestrates the overall install and configuration
 process.
 
 The cluster deployment follows this general process::
+
     git clone git://github.com/open-power-ref-design/cluster-genesis
     cd cluster-genesis
     git checkout release-0.9
