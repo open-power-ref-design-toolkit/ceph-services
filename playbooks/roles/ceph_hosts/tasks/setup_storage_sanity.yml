@@ -15,6 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+  - name: set lsblk_devices fact with journal devs
+    set_fact:
+      lsblk_devices: "{{ journal_devices + osd_devices }}"
+    when: journal_devices|length > 0
+
+  - name: set lsblk_devices fact without journal devs
+    set_fact:
+      lsblk_devices: "{{ osd_devices }}"
+    when: not journal_devices|length > 0
+
   # Search for the device name in the first column of lsblk output.
   #
   # The substring on item (e.g. item[5:]) is to skip over "/dev/"
@@ -32,8 +42,7 @@
     register: lsblk_result
     ignore_errors: true
     with_items:
-      - "{{ journal_devices }}"
-      - "{{ osd_devices }}"
+      - "{{ lsblk_devices }}"
 
   - assert:
       that:
