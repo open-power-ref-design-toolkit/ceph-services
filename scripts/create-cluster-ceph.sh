@@ -38,15 +38,15 @@ echo "infraNodes=$infraNodes"
 echo "storageNodes=$storageNodes"
 echo "allNodes=$allNodes"
 
-pushd playbooks >/dev/null 2>&1
-DY_INVENTORY_DIR="${GENESIS_DIR}/scripts/python/yggdrasil"
-ansible-playbook -i ${DY_INVENTORY_DIR}/inventory.py pre-deploy.yml
-rc=$?
-if [ $rc != 0 ]; then
-    echo "playbooks/pre-deploy.yml failed, rc=$rc"
-    exit 1
-fi
-popd >/dev/null 2>&1
+#pushd playbooks >/dev/null 2>&1
+#DY_INVENTORY_DIR="${GENESIS_DIR}/scripts/python/yggdrasil"
+#ansible-playbook -i ${DY_INVENTORY_DIR}/inventory.py pre-deploy.yml
+#rc=$?
+#if [ $rc != 0 ]; then
+#    echo "playbooks/pre-deploy.yml failed, rc=$rc"
+#    exit 1
+#fi
+#popd >/dev/null 2>&1
 
 
 echo "Running ceph playbooks"
