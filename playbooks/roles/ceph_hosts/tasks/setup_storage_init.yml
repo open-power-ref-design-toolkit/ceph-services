@@ -15,6 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+  # If this is a freshly installed host where ceph is not
+  # configured, we want to clear the disks.  On the other
+  # hand, if ceph is configured we don't want to clear
+  # the disks.   This way the playbook (and any callers)
+  # can be used in a reentrant manner that does no harm
+  # if it is called multiple times.
+  #
+  # We can't perform a check on a per device basis
+  # because journal-devices are accessed as raw partitions
+  # (not mounted).  So we check for mounted ceph osd devices
+  # on a per host basis instead.
+  - name: check if any ceph osd device is mounted
+    shell: lsblk | grep ceph
+    register: is_mounted_results
+    ignore_errors: true
+
   - name: Create execute dir.
     file:
       dest: "{{ execute_dir }}"
@@ -27,9 +43,10 @@
       dest: "{{ execute_dir }}/ceph_setup_storage.sh"
       mode: 0755
 
-  - name: Execute setup script.
+  - name: Execute setup script if ceph is not mounted.
     command: "{{ execute_dir }}/ceph_setup_storage.sh"
     register: storage_setup_result
+    when: is_mounted_results.rc != 0
 
   - name: Cleanup execute dir.
     file:
