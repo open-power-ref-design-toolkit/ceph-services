@@ -41,13 +41,20 @@ openstack_pools = [
     "{{ openstack_cinder_pool }}",
     "{{ openstack_nova_pool }}"]
 
+# At the current time Canonical does not have Ceph packages in UCA for Xenial
+# and the ceph packages and dependencies are available in the normal
+# xenial-updates apt repo.
+# We will comment out the UCA properties, but not remove them so it is easy
+# to switch back to UCA once UCA and xenial-updates diverge and we need the
+# newer code from UCA.
+#  'ceph_stable_uca': True,
+#  'ceph_stable_openstack_release_uca': 'newton',
+#  'ceph_stable_repo_uca': 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
+#  'ceph_stable_release_uca': '{{ ansible_lsb.codename }}-updates/'
+#                             '{{ ceph_stable_openstack_release_uca }}',
 
 hard_coded_vars = {
-    'ceph_stable_uca': True,
-    'ceph_stable_openstack_release_uca': 'newton',
-    'ceph_stable_repo_uca': 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
-    'ceph_stable_release_uca': '{{ ansible_lsb.codename }}-updates/'
-                               '{{ ceph_stable_openstack_release_uca }}',
+    'ceph_origin': 'distro',
     'debian_ceph_packages': ['ceph', 'ceph-common'],
     'generate_fsid': True,
     'journal_size': 10240,

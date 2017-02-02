@@ -53,7 +53,8 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         verify_vars['public_network'] = '172.29.244.0/22'
         verify_vars['cluster_network'] = '{{ public_network }}'
         verify_vars['openstack_config'] = True
-        verify_vars['ceph_stable_uca'] = True
+        # verify_vars['ceph_stable_uca'] = True
+        verify_vars['ceph_origin'] = 'distro'
         verify_vars['openstack_keys'] = os_keys
         verify_vars['openstack_pools'] = os_pools
         verify_vars['monitor_interface'] = 'br-storage'
@@ -115,7 +116,8 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         self.assertEquals(verify_vars['monitor_interface'], 'br-storage')
         self.assertTrue(verify_vars['delete_default_pool'])
         self.assertTrue(verify_vars['openstack_config'])
-        self.assertTrue(verify_vars['ceph_stable_uca'])
+        # self.assertTrue(verify_vars['ceph_stable_uca'])
+        self.assertEqual(verify_vars['ceph_origin'], 'distro')
         inventory = {'reference-architecture': ['ceph-standalone'],
                      'networks': {'ceph-public-storage': {'eth-port':
                                                           'eth11'}}}
