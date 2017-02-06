@@ -94,6 +94,8 @@ def _init_default_values(inventory):
     storage_net = inventory['networks'][storage_net_name]
     mon_interface = storage_net.get('bridge')
     if not mon_interface:
+        mon_interface = storage_net.get('bond')
+    if not mon_interface:
         mon_interface = storage_net.get('eth-port')
     config_vars['monitor_interface'] = mon_interface
     if 'reference-architecture' in inventory.keys():
