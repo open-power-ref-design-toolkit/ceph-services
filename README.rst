@@ -4,30 +4,9 @@ ceph-services
 This project uses Ceph-Ansible to install and configures a Ceph cluster on a set
 of Ubuntu ppc64le servers. These nodes are pre-conditioned by the
 cluster-genesis project which orchestrates the overall install and configuration
-process.
-
-The cluster deployment follows this general process::
-
-    git clone git://github.com/open-power-ref-design/cluster-genesis
-    cd cluster-genesis
-    git checkout release-0.9
-
-Select a sample config.yml to use as a starting point for your
-configuration, for example::
-
-    domain/configs/private-compute-cloud.yml
-    domain/configs/dbaas.yml
-
-Copy the selected file into place::
-
-    cp domain/configs/<filename> config.yml
-
-At this point, the config.yml file needs to be edited to complete the
-configuration. General directions for this are provided in the
-cluster-genesis project, and Ceph specific customization steps
-are described below.  When the cluster-genesis project is activated,
-it will automatically invoke the bootstrap software that is provided
-by this project.
+process.  For more information about running cluster-genesis and deploying
+recipes that use ceph-services see:
+https://github.com/open-power-ref-design/openstack-recipes
 
 Manual configuration of Ceph-Ansible parameters
 ----------------------------------------------------
@@ -74,8 +53,11 @@ Bug Reporting
 The current list of bugs can be found on launchpad:
 https://bugs.launchpad.net/open-power-ref-design
 
-Related projects::
-------------------
+Related projects
+----------------
+
+::
+    > openstack-recipes
     > cluster-genesis
     > os-services
     > opsmgr
