@@ -1,4 +1,4 @@
-# Copyright 2016, IBM US, Inc.
+# Copyright 2016,2017 IBM US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,14 +59,14 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         verify_vars['openstack_pools'] = os_pools
         verify_vars['monitor_interface'] = 'br-storage'
         all_vars = test_mod._generate_all_vars(inventory, growth_factor,
-                                               1, 1, 1)
+                                               1, 1, 1, True)
         self._assert_invalid_config(ref_arch, verify_vars)
         self.assertDictEqual(verify_vars, all_vars)
 
         # Test again with cluster net set
         inventory['networks']['ceph-replication'] = {'addr': '172.29.100.0/22'}
         all_vars = test_mod._generate_all_vars(inventory, growth_factor,
-                                               1, 1, 1)
+                                               1, 1, 1, True)
 
         verify_vars['cluster_network'] = '172.29.100.0/22'
         self.assertDictEqual(verify_vars, all_vars)
@@ -82,21 +82,71 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
                                              'ceph-public-storage-addr':
                                              '172.26.244.0/22'}]}}
         growth_factor = 200
-        verify_vars = test_mod._init_default_values(inventory)
+        verify_vars = test_mod._init_default_values(inventory, False)
         verify_vars['delete_default_pool'] = False
         verify_vars['public_network'] = '172.26.244.0/22'
         verify_vars['cluster_network'] = '{{ public_network }}'
         all_vars = test_mod._generate_all_vars(inventory, growth_factor,
-                                               1, 1, 1)
+                                               1, 1, 1, False)
         self._assert_invalid_config(ref_arch, verify_vars)
         self.assertDictEqual(verify_vars, all_vars)
 
         # Test again with cluster net set
         inventory['networks']['ceph-replication'] = {'addr': '172.29.100.0/22'}
         all_vars = test_mod._generate_all_vars(inventory, growth_factor,
-                                               1, 1, 1)
+                                               1, 1, 1, False)
         verify_vars['cluster_network'] = '172.29.100.0/22'
         self.assertDictEqual(verify_vars, all_vars)
+
+    def test_generate_priv_cloud_all_vars(self):
+        os_config = False
+        growth_factor = 200
+        ref_arch = ['private-compute-cloud']
+        inventory = {'networks': {'openstack-stg':
+                                  {'addr': '172.29.244.0/22',
+                                   'bridge': 'br-storage'}},
+                     'reference-architecture': ref_arch}
+        verify_vars = test_mod._generate_all_vars(inventory, growth_factor,
+                                                  1, 1, 1, os_config)
+        self.assertFalse(verify_vars['delete_default_pool'])
+        self.assertNotIn('openstack_config', verify_vars)
+        os_config = True
+        inventory['node-templates'] = {'ceph-osd':
+                                       {'domain-settings':
+                                        {'osd-devices': {'/dev/sdb'}}}}
+        inventory['nodes'] = {'controllers': [{'hostname': ['sm15']}],
+                              'ceph-osd': [{'hostname': 'osd1',
+                                            'ceph-public-storage-addr':
+                                            '172.26.244.0/22'}]}
+        verify_vars = test_mod._generate_all_vars(inventory, growth_factor,
+                                                  1, 1, 1, os_config)
+        self.assertTrue(verify_vars['delete_default_pool'])
+        self.assertTrue('openstack_config', verify_vars)
+
+    def test_generate_ceph_standalone_all_vars(self):
+        os_config = False
+        growth_factor = 200
+        ref_arch = ['ceph-standalone']
+        inventory = {'networks': {'ceph-public-storage':
+                                  {'addr': '172.26.244.0/22',
+                                   'eth-port': 'eth11'}},
+                     'reference-architecture': ref_arch,
+                     'nodes': {'controllers': [{'hostname': ['sm15']}],
+                               'ceph-osd': [{'hostname': 'osd1',
+                                             'ceph-public-storage-addr':
+                                             '172.26.244.0/22'}]}}
+        verify_vars = test_mod._generate_all_vars(inventory, growth_factor,
+                                                  1, 1, 1, os_config)
+        self.assertFalse(verify_vars['delete_default_pool'])
+        self.assertNotIn('openstack_config', verify_vars)
+        os_config = True
+        inventory['node-templates'] = {'ceph-osd':
+                                       {'domain-settings':
+                                        {'osd-devices': {'/dev/sdb'}}}}
+        verify_vars = test_mod._generate_all_vars(inventory, growth_factor,
+                                                  1, 1, 1, os_config)
+        self.assertTrue(verify_vars['delete_default_pool'])
+        self.assertTrue('openstack_config', verify_vars)
 
     def _assert_invalid_config(self, ref_arch, ref_config_settings):
         if 'private-compute-cloud' in ref_arch:
@@ -108,11 +158,39 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
             self.assertNotIn('openstack_keys', ref_config_settings)
             self.assertNotIn('openstack_pools', ref_config_settings)
 
+    def test_init_ceph_standalone_os_config(self):
+        os_config = True
+        inventory = {'reference-architecture': ['ceph-standalone'],
+                     'networks': {'ceph-public-storage': {'eth-port':
+                                                          'eth11'}}}
+        verify_vars = test_mod._init_default_values(inventory, os_config)
+        self.assertTrue(verify_vars['delete_default_pool'])
+        self.assertTrue('openstack_config', verify_vars)
+
+        os_config = False
+        verify_vars = test_mod._init_default_values(inventory, os_config)
+        self.assertFalse(verify_vars['delete_default_pool'])
+        self.assertNotIn('openstack_config', verify_vars)
+
+    def test_init_ceph_priv_cloud_os_config(self):
+        os_config = True
+        inventory = {'reference-architecture': ['private-compute-cloud'],
+                     'networks': {'openstack-stg': {'bridge': 'br-storage',
+                                                    'eth-port': 'eth11'}}}
+        verify_vars = test_mod._init_default_values(inventory, os_config)
+        self.assertTrue(verify_vars['delete_default_pool'])
+        self.assertTrue('openstack_config' in verify_vars)
+
+        os_config = False
+        verify_vars = test_mod._init_default_values(inventory, os_config)
+        self.assertFalse(verify_vars['delete_default_pool'])
+        self.assertNotIn('openstack_config', verify_vars)
+
     def test_init_default_values(self):
         inventory = {'reference-architecture': ['private-compute-cloud'],
                      'networks': {'openstack-stg': {'bridge': 'br-storage',
                                                     'eth-port': 'eth11'}}}
-        verify_vars = test_mod._init_default_values(inventory)
+        verify_vars = test_mod._init_default_values(inventory, True)
         self.assertEquals(verify_vars['monitor_interface'], 'br-storage')
         self.assertTrue(verify_vars['delete_default_pool'])
         self.assertTrue(verify_vars['openstack_config'])
@@ -121,15 +199,14 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         inventory = {'reference-architecture': ['ceph-standalone'],
                      'networks': {'ceph-public-storage': {'eth-port':
                                                           'eth11'}}}
-        verify_vars = test_mod._init_default_values(inventory)
+        verify_vars = test_mod._init_default_values(inventory, False)
         self.assertFalse(verify_vars['delete_default_pool'])
         self.assertEquals(verify_vars['monitor_interface'], 'eth11')
-
         # Test bonded network
         inventory = {'reference-architecture': ['ceph-standalone'],
                      'networks': {'ceph-public-storage': {'bond':
                                                           'jamesbond'}}}
-        verify_vars = test_mod._init_default_values(inventory)
+        verify_vars = test_mod._init_default_values(inventory, False)
         self.assertFalse(verify_vars['delete_default_pool'])
         self.assertEquals(verify_vars['monitor_interface'], 'jamesbond')
 
@@ -415,9 +492,10 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         root_dir = '/root_dir'
         inventory_contents = {'node-templates': {'ceph-osd': 'osdhosts'}}
         load_yml.return_value = inventory_contents
-        test_mod.generate_files(root_dir, inventory_file, 200, 1, 1, 1)
+        test_mod.generate_files(root_dir, inventory_file, 200, 1, 1, 1, True)
         load_yml.assert_called_once_with(inventory_file)
-        all_vars.assert_called_once_with(inventory_contents, 200, 1, 1, 1)
+        all_vars.assert_called_once_with(inventory_contents, 200, 1, 1, 1,
+                                         True)
         osds.assert_called_once_with(inventory_contents)
         write_yml.assert_has_calls(
             [mock.call(root_dir + os.path.sep + 'group_vars' +

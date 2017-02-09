@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016, IBM US, Inc.
+# Copyright 2016,2017 IBM US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import math
 import os.path
 import sys
 import yaml
-
 
 JOURNAL_DEVICE_KEY = 'journal-devices'
 OSD_DEVICE_KEY = 'osd-devices'
@@ -88,7 +87,7 @@ def _get_storage_network(inventory):
     return 'openstack-stg'
 
 
-def _init_default_values(inventory):
+def _init_default_values(inventory, openstack_config):
     config_vars = copy.deepcopy(hard_coded_vars)
     storage_net_name = _get_storage_network(inventory)
     storage_net = inventory['networks'][storage_net_name]
@@ -98,8 +97,7 @@ def _init_default_values(inventory):
     if not mon_interface:
         mon_interface = storage_net.get('eth-port')
     config_vars['monitor_interface'] = mon_interface
-    if 'reference-architecture' in inventory.keys():
-        if CEPH_STANDALONE in inventory['reference-architecture']:
+    if not openstack_config:
             config_vars['delete_default_pool'] = False
             return config_vars
     config_vars['delete_default_pool'] = True
@@ -122,10 +120,12 @@ def _get_mon_ips(inventory):
 
 
 def generate_files(root_dir, inventory_file, growth_factor, vms_data_percent,
-                   images_data_percent, volumes_data_percent):
+                   images_data_percent, volumes_data_percent,
+                   openstack_config):
     inventory = _load_yml(inventory_file)
     all_vars = _generate_all_vars(inventory, growth_factor, vms_data_percent,
-                                  images_data_percent, volumes_data_percent)
+                                  images_data_percent, volumes_data_percent,
+                                  openstack_config)
     _write_yml(os.path.join(root_dir, 'group_vars', 'all'), all_vars)
     osd_vars = _generate_osds_vars(inventory)
     _write_yml(os.path.join(root_dir, 'group_vars', 'osds'), osd_vars)
@@ -134,8 +134,9 @@ def generate_files(root_dir, inventory_file, growth_factor, vms_data_percent,
 
 
 def _generate_all_vars(inventory, growth_factor, vms_data_percent,
-                       images_data_percent, volumes_data_percent):
-    all_vars = _init_default_values(inventory)
+                       images_data_percent, volumes_data_percent,
+                       openstack_config):
+    all_vars = _init_default_values(inventory, openstack_config)
     pub_storage = _get_storage_network(inventory)
     storage_net = inventory['networks'][pub_storage]['addr']
     cluster_net = '{{ public_network }}'
@@ -143,8 +144,7 @@ def _generate_all_vars(inventory, growth_factor, vms_data_percent,
     if 'ceph-replication' in inventory['networks']:
         cluster_net = inventory['networks']['ceph-replication']['addr']
 
-    if 'reference-architecture' in inventory.keys():
-        if CEPH_STANDALONE not in inventory['reference-architecture']:
+    if openstack_config:
             openstack_pools = _get_openstack_pools(inventory, growth_factor,
                                                    vms_data_percent,
                                                    images_data_percent,
@@ -342,6 +342,20 @@ def main():
                         help=('The percentage of the cluster data which will '
                               'be contained in the volumes pool, '
                               'specified as an integer. Example: 25 for 25%%'))
+    open_stk_parser = parser.add_mutually_exclusive_group(required=False)
+    open_stk_parser.add_argument("--openstack_config",
+                                 dest='openstack_config',
+                                 action="store_true",
+                                 help=('Enable Openstack Configuration for '
+                                       'Ceph Standalone. '
+                                       'Example --openstack_config'))
+    open_stk_parser.add_argument("--no_openstack_config",
+                                 dest='openstack_config',
+                                 required=False,
+                                 action="store_false",
+                                 help=('Disable Openstack Configuration for '
+                                       'Ceph Standalone'))
+    parser.set_defaults(openstack_config=True)
 
     # Handle error cases before attempting to parse
     # a command off the command line
@@ -352,7 +366,7 @@ def main():
 
     generate_files(args.output_root, args.inventory_file, args.growth_factor,
                    args.vms_pool_percent, args.images_pool_percent,
-                   args.volumes_pool_percent)
+                   args.volumes_pool_percent, args.openstack_config)
 
 if __name__ == "__main__":
     main()
