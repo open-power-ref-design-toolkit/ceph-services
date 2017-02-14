@@ -44,7 +44,5 @@
     debug:
       msg: "{{ item }}"
     with_items:
-      - "ceph_osd_shortcut={{ ceph_osd_shortcut }}"
-      - "ds_shortcut={{ ds_shortcut }}"
       - "journal_devices={{ journal_devices }}"
       - "osd_devices={{ osd_devices }}"
