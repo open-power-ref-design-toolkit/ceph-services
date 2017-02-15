@@ -48,6 +48,21 @@ To do this, run the following command after bootstrap-cluster and before create-
 See the usage statement of ./scripts/ulysses_ceph/generate_ceph_ansible_input.py
 for more information.
 
+Openstack Configuration
+------------------------
+The Ceph cluster is configured by default to be used with OpenStack.
+
+The Ceph cluster can be configured to be used without OpenStack. The --no_openstack_config
+parameter can be used to avoid creating OpenStack Ceph user keys and pools.  To do this
+run the generate_ceph_ansible_input.py command after bootstrap-cluster and before
+create-cluster and specify the --no_openstack_config parameter::
+
+    ./scripts/ulysses_ceph/generate_ceph_ansible_input.py \
+       --inventory /var/oprc/inventory.yml --output_directory /opt/ceph-ansible \
+       --no_openstack_config
+
+See the usage statement of ./scripts/ulysses_ceph/generate_ceph_ansible_input.py
+for more information.
 Bug Reporting
 -------------
 The current list of bugs can be found on launchpad:
