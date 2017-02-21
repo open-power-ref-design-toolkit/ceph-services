@@ -18,10 +18,14 @@ The device list for the OSDs and the disk journals can be modified in the config
 before cluster-genesis is run.
 
 To modify the two Ceph-Ansible variables that control the Ceph cluster deployment
-you modify the all and osd group variable files::
+you modify the 'all' and 'osd' group variable files::
 
     /opt/ceph-ansible/group_vars/all
     /opt/ceph-ansible/group_vars/osd
+
+Note that the generate_ceph_ansible_input.py which can be used to customize placement
+groups and OpenStack configuration will overwrite these files so any manual
+customization should be done after calling generate_ceph_ansible_input.py.
 
 Placement group customization
 ------------------------------
@@ -63,6 +67,7 @@ create-cluster and specify the --no_openstack_config parameter::
 
 See the usage statement of ./scripts/ulysses_ceph/generate_ceph_ansible_input.py
 for more information.
+
 Bug Reporting
 -------------
 The current list of bugs can be found on launchpad:
@@ -71,8 +76,21 @@ https://bugs.launchpad.net/open-power-ref-design
 Related projects
 ----------------
 
-::
-    > openstack-recipes
-    > cluster-genesis
-    > os-services
-    > opsmgr
+The following project provides recipes for the delivery of compelling cloud based
+offerings that are specially built for OpenPOWER servers.  In general, users should
+read this project first:
+
+    - `openstack-recipes <https://github.com/open-power-ref-design/openstack-recipes>`_
+
+Here, you will find information about:
+
+    - `Private cloud w/ and w/o Swift Object Storage <https://github.com/open-power-ref-design/openstack-recipes/blob/master/README.rst>`_
+    - `Database as a Service (OpenStack Trove) <https://github.com/open-power-ref-design/openstack-recipes/blob/master/README-dbaas.rst>`_
+    - `Standalone Swift Clusters (OpenStack Swift) <https://github.com/open-power-ref-design/openstack-recipes/blob/master/README-swift.rst>`_
+
+The following projects provide services that are used as major building blocks in
+recipes:
+
+    - `cluster-genesis <https://github.com/open-power-ref-design/cluster-genesis>`_
+    - `os-services <https://github.com/open-power-ref-design/os-services>`_
+    - `opsmgr <https://github.com/open-power-ref-design/opsmgr>`_
