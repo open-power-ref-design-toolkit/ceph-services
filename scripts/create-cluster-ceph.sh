@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016 IBM Corp.
+# Copyright 2016,2017 IBM Corp.
 #
 # All Rights Reserved.
 #
@@ -33,11 +33,6 @@ export GENESIS_DIR=${GENESIS_DIR:-"/opt/cluster-genesis"}
 SCRIPTS_DIR=$(dirname $0)
 source $SCRIPTS_DIR/process-args.sh
 
-echo "DEPLOY_AIO=$DEPLOY_AIO"
-echo "infraNodes=$infraNodes"
-echo "storageNodes=$storageNodes"
-echo "allNodes=$allNodes"
-
 pushd playbooks >/dev/null 2>&1
 DY_INVENTORY_DIR="${GENESIS_DIR}/scripts/python/yggdrasil"
 ansible-playbook -i ${DY_INVENTORY_DIR}/inventory.py pre-deploy.yml
@@ -54,13 +49,4 @@ echo "Running ceph playbooks"
 # Deploy site.yml
 cd $CEPH_DIR
 
-if real_genesis_inventory_present; then
-    run_ansible site.yml
-else
-    PUBLIC_SUBNET=$(ip r | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[0-9]\{1,2\}' | head -1)
-
-    JSON_VARS="{\"public_subnet\":\"${PUBLIC_SUBNET}\"}"
-    echo "JSON_VARS=$JSON_VARS"
-
-    run_ansible -vvv --extra-vars $JSON_VARS site.yml
-fi
+run_ansible site.yml
