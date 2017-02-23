@@ -5,8 +5,7 @@ This project uses Ceph-Ansible to install and configures a Ceph cluster on a set
 of Ubuntu ppc64le servers. These nodes are pre-conditioned by the
 cluster-genesis project which orchestrates the overall install and configuration
 process.  For more information about running cluster-genesis and deploying
-recipes that use ceph-services see:
-https://github.com/open-power-ref-design/openstack-recipes
+recipes that use ceph-services see the related projects section below.
 
 Manual configuration of Ceph-Ansible parameters
 ----------------------------------------------------
@@ -76,21 +75,21 @@ https://bugs.launchpad.net/open-power-ref-design
 Related projects
 ----------------
 
-The following project provides recipes for the delivery of compelling cloud based
-offerings that are specially built for OpenPOWER servers.  In general, users should
-read this project first:
+OpenStack based recipes for OpenPOWER servers are located here:
 
-    - `openstack-recipes <https://github.com/open-power-ref-design/openstack-recipes>`_
+    - `Recipe directory <https://github.com/open-power-ref-design/>`_
 
 Here, you will find information about:
 
-    - `Private cloud w/ and w/o Swift Object Storage <https://github.com/open-power-ref-design/openstack-recipes/blob/master/README.rst>`_
-    - `Database as a Service (OpenStack Trove) <https://github.com/open-power-ref-design/openstack-recipes/blob/master/README-dbaas.rst>`_
-    - `Standalone Swift Clusters (OpenStack Swift) <https://github.com/open-power-ref-design/openstack-recipes/blob/master/README-swift.rst>`_
+    - `Private cloud w/ and w/o Swift Object Storage <https://github.com/open-power-ref-design/private-compute-cloud/blob/master/README.rst>`_
+    - `Database as a Service (OpenStack Trove) <https://github.com/open-power-ref-design/dbaas/blob/master/README-dbaas.rst>`_
+    - `Standalone Swift Clusters (OpenStack Swift) <https://github.com/open-power-ref-design/standalone-swift/blob/master/README-swift.rst>`_
+    - `Standalone Ceph Clusters <https://github.com/open-power-ref-design/standalone-ceph/blob/master/README-swift.rst>`_
 
-The following projects provide services that are used as major building blocks in
+The following projects provides services that are used as major building blocks in
 recipes:
 
-    - `cluster-genesis <https://github.com/open-power-ref-design/cluster-genesis>`_
-    - `os-services <https://github.com/open-power-ref-design/os-services>`_
-    - `opsmgr <https://github.com/open-power-ref-design/opsmgr>`_
+    - `cluster-genesis <https://github.com/open-power-ref-design-toolkit/cluster-genesis>`_
+    - `ceph-services <https://github.com/open-power-ref-design-toolkit/ceph-services>`_
+    - `opsmgr <https://github.com/open-power-ref-design-toolkit/opsmgr>`_
+
