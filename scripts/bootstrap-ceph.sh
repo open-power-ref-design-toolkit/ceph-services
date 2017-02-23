@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016 IBM Corp.
+# Copyright 2016,2017 IBM Corp.
 #
 # All Rights Reserved.
 #
@@ -19,15 +19,6 @@
 # This parameter controls the version of ceph-ansible that is installed
 CEPH_ANSIBLE_TAG=${CEPH_ANSIBLE_TAG:-"v2.0.0"}
 
-# This parameter controls which ceph inventory (group_vars) to be used for testing
-# purposes.  Presently, there is only one inventory supported.  aio_config_1 is an
-# all in one configuration that does not require any dedicated disks.  Another
-# variant say aio_config_2 might include 3 dedicated disks.  There are configuration
-# requirements associated with each configuration that have to be satisfied by CICD
-# in conjunction with the execution of each set of ceph inventory data as externally
-# controlled by this variable
-TEST_CONFIG=${CICD_INVENTORY:-"etc/test_config/aio_openstack_with_ceph"}
-
 if [ "$1" == "--help" ]; then
     echo "Usage: bootstrap-ceph.sh"
     exit 1
@@ -41,11 +32,6 @@ PCLD_DIR=`pwd`
 
 SCRIPTS_DIR=$(dirname $0)
 source $SCRIPTS_DIR/process-args.sh
-
-echo "DEPLOY_AIO=$DEPLOY_AIO"
-echo "infraNodes=$infraNodes"
-echo "storageNodes=$storageNodes"
-echo "allNodes=$allNodes"
 
 INSTALL=False
 if [ ! -d $CEPH_DIR ]; then
@@ -94,31 +80,13 @@ if [ $rc != 0 ]; then
 fi
 
 # This is the normalized genesis style input source of inventory covering all configurations
-if real_genesis_inventory_present; then
-    echo "Using genesis inventory"
-    ${PCLD_DIR}/scripts/ulysses_ceph/generate_ceph_ansible_input.py \
-        --inventory $GENESIS_INVENTORY --output_directory $CEPH_DIR
-    if [ $? != 0 ]; then
-        echo "Error generating ceph inventory"
-        exit 2
-    fi
-else
-    echo "Generating ceph inventory from test configuration directory $TEST_CONFIG"
-    if [ -r $TEST_CONFIG/playbooks/setup.yml ]; then
-        pushd $TEST_CONFIG/playbooks >/dev/null 2>&1
-            echo "Running playbook to setup test configuration"
-            run_ansible setup.yml
-            if [ $? != 0 ]; then
-                echo "Error preparing test configuration"
-                exit 3
-            fi
-        popd >/dev/null 2>&1
-    fi
-    cp $TEST_CONFIG/all $CEPH_DIR/group_vars
-    cp $TEST_CONFIG/osds $CEPH_DIR/group_vars
-    cp $TEST_CONFIG/hosts $CEPH_DIR/ceph-hosts
+echo "Using genesis inventory"
+${PCLD_DIR}/scripts/ulysses_ceph/generate_ceph_ansible_input.py \
+    --inventory $GENESIS_INVENTORY --output_directory $CEPH_DIR
+if [ $? != 0 ]; then
+    echo "Error generating ceph inventory"
+    exit 2
 fi
-
 echo "The ceph ansible control files are located at $CEPH_DIR/group_vars"
 echo ""
 echo "Settings may be customized if desired before they are activated by create cluster"
