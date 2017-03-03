@@ -21,9 +21,13 @@ import os.path
 import sys
 import yaml
 
+
 JOURNAL_DEVICE_KEY = 'journal-devices'
 OSD_DEVICE_KEY = 'osd-devices'
 CEPH_STANDALONE = 'ceph-standalone'
+TEMPLATE_ROLES_KEY = 'roles'
+MON_ROLE = 'ceph-monitor'
+OSD_ROLE = 'ceph-osd'
 
 openstack_keys = [
     {'name': 'client.glance',
@@ -107,22 +111,50 @@ def _init_default_values(inventory, openstack_config):
     return config_vars
 
 
+def _get_nodes_for_role(inventory, role, templates=None):
+    if not templates:
+        templates = _get_node_template_names_for_role(inventory, role)
+    nodes = []
+    for name in templates:
+        nodes.extend(inventory['nodes'][name])
+    return nodes
+
+
+def _get_node_template_names_for_role(inventory, role):
+    # Return the list of node templates names that satisfy the given role
+    templates = []
+    for name, templ in inventory['node-templates'].iteritems():
+        if name == role:
+            # for backward compatibility node template names are
+            # also roles
+            templates.append(name)
+        elif role == MON_ROLE and name == 'controllers':
+            # for backward compatibility controller node templates
+            # are ceph-monitors
+            templates.append(name)
+        elif TEMPLATE_ROLES_KEY in templ:
+            if role in templ[TEMPLATE_ROLES_KEY]:
+                templates.append(name)
+    return templates
+
+
 def _get_osd_ips(inventory):
     osd_network = '%s-addr' % _get_storage_network(inventory)
     return [host[osd_network]
-            for host in inventory['nodes']['ceph-osd']]
+            for host in _get_nodes_for_role(inventory, OSD_ROLE)]
 
 
 def _get_mon_ips(inventory):
     osd_network = '%s-addr' % _get_storage_network(inventory)
     return [host[osd_network]
-            for host in inventory['nodes']['controllers']]
+            for host in _get_nodes_for_role(inventory, MON_ROLE)]
 
 
 def generate_files(root_dir, inventory_file, growth_factor, vms_data_percent,
                    images_data_percent, volumes_data_percent,
                    openstack_config):
     inventory = _load_yml(inventory_file)
+
     all_vars = _generate_all_vars(inventory, growth_factor, vms_data_percent,
                                   images_data_percent, volumes_data_percent,
                                   openstack_config)
@@ -157,7 +189,8 @@ def _generate_all_vars(inventory, growth_factor, vms_data_percent,
 
 def _generate_osds_vars(inventory):
     osd_vars = {}
-    template = inventory['node-templates']['ceph-osd']
+    osd_templates = _get_node_template_names_for_role(inventory, OSD_ROLE)
+    template = inventory['node-templates'][osd_templates[0]]
     osd_vars['devices'] = template['domain-settings'][OSD_DEVICE_KEY]
 
     if JOURNAL_DEVICE_KEY in template['domain-settings']:
@@ -187,31 +220,6 @@ def _generate_journal_device_list(journal_devices, osd_device_count):
             osd_journal_list.append(journal_device)
 
     return osd_journal_list
-
-
-def _validate_devices_lists(osd_templates, device_key):
-    """
-    Validates the device lists on the OSD templates.
-    The journal device lists must match across the templates.
-    The osd device lists must match across the templates.
-    This method is currently unused since we have moved the device lists from
-    nodes to templates and only support one template.
-    """
-
-    def checkEqual(iterator):
-        try:
-            iterator = iter(iterator)
-            first = next(iterator)
-            return all(first == rest for rest in iterator)
-        except StopIteration:
-            return True
-
-    are_equal = checkEqual(iter([tmpl[device_key] for tmpl in osd_templates]))
-    if not are_equal:
-        msg = ('The device list %(list_name)s does not contain the same '
-               'set of devices across all of '
-               'the OSD nodes.') % {'list_name': device_key}
-        raise InvalidDeviceList(msg)
 
 
 def _generate_hosts_file(inventory):
@@ -277,10 +285,11 @@ def _calculate_pg_count(osd_count, percent_data, growth_factor):
 
 
 def _get_osd_count(inventory):
-    ceph_osd_tmpl = inventory['node-templates']['ceph-osd']
+    osd_templates = _get_node_template_names_for_role(inventory, OSD_ROLE)
+    ceph_osd_tmpl = inventory['node-templates'][osd_templates[0]]
     domain_settings = ceph_osd_tmpl['domain-settings']
-    num_osd_nodes = len(inventory['nodes']['ceph-osd'])
-    count = len(domain_settings[OSD_DEVICE_KEY]) * num_osd_nodes
+    osd_nodes = _get_nodes_for_role(inventory, OSD_ROLE, osd_templates)
+    count = len(domain_settings[OSD_DEVICE_KEY]) * len(osd_nodes)
     return count
 
 
@@ -370,7 +379,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-class InvalidDeviceList(Exception):
-    pass

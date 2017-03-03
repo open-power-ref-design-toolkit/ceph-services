@@ -98,7 +98,9 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         verify_vars['cluster_network'] = '172.29.100.0/22'
         self.assertDictEqual(verify_vars, all_vars)
 
-    def test_generate_priv_cloud_all_vars(self):
+    @mock.patch(TEST_MODULE_STRING + '._get_node_template_names_for_role',
+                return_value=['ceph-osd'])
+    def test_generate_priv_cloud_all_vars(self, template_names):
         os_config = False
         growth_factor = 200
         ref_arch = ['private-compute-cloud']
@@ -218,7 +220,9 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         self.assertEqual(test_mod._get_storage_network(inventory),
                          'openstack-stg')
 
-    def test_get_osd_ips(self):
+    @mock.patch(TEST_MODULE_STRING + '._get_node_template_names_for_role',
+                return_value=['ceph-osd'])
+    def test_get_osd_ips(self, template_names):
         ref_arch = ['ceph-standalone']
         inventory = {'reference-architecture': ref_arch,
                      'nodes': {'ceph-osd': [{'hostname': 'osd1',
@@ -236,7 +240,9 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         self.assertEqual(test_mod._get_osd_ips(inventory),
                          ['172.26.244.1'])
 
-    def test_get_mon_ips(self):
+    @mock.patch(TEST_MODULE_STRING + '._get_node_template_names_for_role',
+                return_value=['controllers'])
+    def test_get_mon_ips(self, template_names):
         inventory = {'reference-architecture': ['ceph-standalone'],
                      'nodes': {'controllers': [{'hostname': 'controller1',
                                                 'ceph-public-storage-addr':
@@ -262,7 +268,9 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         self.assertEqual(test_mod._get_mon_ips(inventory),
                          ['172.29.244.2', '172.29.244.3', '172.29.244.4'])
 
-    def test_get_osd_count(self):
+    @mock.patch(TEST_MODULE_STRING + '._get_node_template_names_for_role',
+                return_value=['ceph-osd'])
+    def test_get_osd_count(self, template_names):
         osd_devices = ['/dev/sde',
                        '/dev/sdf',
                        '/dev/sdg',
@@ -277,55 +285,16 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         count = test_mod._get_osd_count(inventory)
         self.assertEqual(count, 30)
 
-    def test_validate_devices_lists(self):
-        devices = ['/dev/sde',
-                   '/dev/sdf',
-                   '/dev/sdg',
-                   '/dev/sdh',
-                   '/dev/sdi']
-        # Test where the lists are equal
-        osd_tmpls = [{test_mod.OSD_DEVICE_KEY: devices}]
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-        test_mod._validate_devices_lists(osd_tmpls,
-                                         test_mod.OSD_DEVICE_KEY)
-        # Test where one list on one host is shorter
-        osd_tmpls = [{test_mod.OSD_DEVICE_KEY: devices}]
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-        devices2 = devices[:-2]
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices2)})
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-
-        self.assertRaises(test_mod.InvalidDeviceList,
-                          test_mod._validate_devices_lists, osd_tmpls,
-                          test_mod.OSD_DEVICE_KEY)
-
-        # Test where one of the lists is longer
-        osd_tmpls = [{test_mod.OSD_DEVICE_KEY: devices}]
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-        devices2 = copy.deepcopy(devices).append('somethingMore')
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices2)})
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-
-        self.assertRaises(test_mod.InvalidDeviceList,
-                          test_mod._validate_devices_lists, osd_tmpls,
-                          test_mod.OSD_DEVICE_KEY)
-
-        # Test where one of the lists has a different value
-        osd_tmpls = [{test_mod.OSD_DEVICE_KEY: devices}]
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-        devices2 = copy.deepcopy(devices)
-        devices2[4] = '/different'
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices2)})
-        osd_tmpls.append({test_mod.OSD_DEVICE_KEY: copy.deepcopy(devices)})
-
-        self.assertRaises(test_mod.InvalidDeviceList,
-                          test_mod._validate_devices_lists, osd_tmpls,
-                          test_mod.OSD_DEVICE_KEY)
+        # Test 3 ceph-osd templates
+        template_names.return_value = ['ceph-osd', 'osd2', 'osd3']
+        inventory = {'node-templates': {'ceph-osd': domain_settings,
+                                        'osd2': domain_settings,
+                                        'osd3': domain_settings},
+                     'nodes': {'ceph-osd': ['1', '2', '3', '4', '5', '6'],
+                               'osd2': ['a', 'b', 'c', 'd', 'e', 'f'],
+                               'osd3': ['g', 'h', 'i', 'j', 'k', 'l']}}
+        count = test_mod._get_osd_count(inventory)
+        self.assertEqual(count, 90)
 
     def test_generate_journal_device_list(self):
         # Test one journal
@@ -394,8 +363,10 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
 
         self.assertDictEqual(pools, v_pools)
 
+    @mock.patch(TEST_MODULE_STRING + '._get_node_template_names_for_role',
+                return_value=['ceph-osd'])
     @mock.patch(TEST_MODULE_STRING + '._generate_journal_device_list')
-    def test_generate_osds_vars(self, gen_journal_list):
+    def test_generate_osds_vars(self, gen_journal_list, template_names):
         # Test with journal list:
         inventory = {'node-templates':
                      {'ceph-osd': {'domain-settings':
@@ -419,6 +390,9 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         self.assertDictEqual(ret_vars, verify_vars)
 
     def test_generate_hosts_file(self):
+        # Test private compute flavors with original template = role
+        templates = {'controllers': {},
+                     'ceph-osd': {}}
         the_nodes = {'controllers': [{'hostname': 'controller1',
                                       'openstack-stg-addr': '172.29.244.2'},
                                      {'hostname': 'controller2',
@@ -433,8 +407,9 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
                                    'openstack-stg-addr':
                                    '172.29.244.7'}]}
         inventory = {'reference-architecture': ['private-compute-cloud'],
-                     'nodes': the_nodes}
-        hosts_file = test_mod._generate_hosts_file({'nodes': the_nodes})
+                     'nodes': the_nodes,
+                     'node-templates': templates}
+        hosts_file = test_mod._generate_hosts_file(inventory)
         expected_file = ('[mons]\n'
                          '172.29.244.2\n'
                          '172.29.244.3\n'
@@ -444,6 +419,7 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
                          '172.29.244.6\n'
                          '172.29.244.7')
         self.assertEqual(hosts_file, expected_file)
+        # Test ceph standalone with original template = role
         ref_arch = ['ceph-standalone']
         the_nodes = {'controllers': [{'hostname': 'controller1',
                                       'ceph-public-storage-addr':
@@ -467,7 +443,8 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
                                   {'addr': '172.26.244.0/22',
                                    'eth-port': 'eth11'}},
                      'reference-architecture': ref_arch,
-                     'nodes': the_nodes}
+                     'nodes': the_nodes,
+                     'node-templates': templates}
         hosts_file = test_mod._generate_hosts_file(inventory)
         expected_file = ('[mons]\n'
                          '172.29.244.2\n'
@@ -477,6 +454,30 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
                          '172.29.244.5\n'
                          '172.29.244.6\n'
                          '172.29.244.7')
+        self.assertEqual(hosts_file, expected_file)
+
+        # Test converged node
+        templates = {'converged': {
+                     test_mod.TEMPLATE_ROLES_KEY: ['ceph-monitor',
+                                                   'ceph-osd']}}
+        the_nodes = {'converged': [{'hostname': 'controller1',
+                                    'openstack-stg-addr': '172.29.244.2'},
+                                   {'hostname': 'controller2',
+                                    'openstack-stg-addr': '172.29.244.3'},
+                                   {'hostname': 'controller3',
+                                    'openstack-stg-addr': '172.29.244.4'}]}
+        inventory = {'reference-architecture': ['private-compute-cloud'],
+                     'nodes': the_nodes,
+                     'node-templates': templates}
+        hosts_file = test_mod._generate_hosts_file(inventory)
+        expected_file = ('[mons]\n'
+                         '172.29.244.2\n'
+                         '172.29.244.3\n'
+                         '172.29.244.4\n'
+                         '\n[osds]\n'
+                         '172.29.244.2\n'
+                         '172.29.244.3\n'
+                         '172.29.244.4')
         self.assertEqual(hosts_file, expected_file)
 
     @mock.patch(TEST_MODULE_STRING + '._write_string')
@@ -505,13 +506,101 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         write_string.assert_called_once_with(root_dir + os.path.sep +
                                              'ceph-hosts', hosts.return_value)
 
-#     @mock.patch('generate_ceph_ansible_input._write_string')
-#     @mock.patch('generate_ceph_ansible_input._write_yml')
-#     def test_generate_files_real_inventory(self, write_yml, write_string):
-#         # Test successful path
-#         inventory_file = ''
-#         root_dir = 'c:\\a_ulysses\\workspace\\ulysses\\tests\\output'
-#         test_mod.generate_files(root_dir, inventory_file, 200)
+    def test_get_node_template_names_for_role(self):
+        # Test backward compatibility
+        templates = {'controllers': {},
+                     'ceph-osd': {},
+                     'compute': {}}
+        inv = {'node-templates': templates}
+        ret = test_mod._get_node_template_names_for_role(inv,
+                                                         'ceph-monitor')
+        self.assertEqual(ret, ['controllers'])
+        ret = test_mod._get_node_template_names_for_role(inv,
+                                                         'ceph-osd')
+        self.assertEqual(ret, ['ceph-osd'])
+
+        # Test converged ceph monitor and osd
+        templates = {'converged': {
+            test_mod.TEMPLATE_ROLES_KEY: ['ceph-monitor',
+                                          'ceph-osd']}}
+        inv = {'node-templates': templates}
+        ret = test_mod._get_node_template_names_for_role(inv,
+                                                         'ceph-monitor')
+        self.assertEqual(ret, ['converged'])
+        ret = test_mod._get_node_template_names_for_role(inv,
+                                                         'ceph-osd')
+        self.assertEqual(ret, ['converged'])
+
+        # Test separate monitor and OSD
+        templates = {'mon': {test_mod.TEMPLATE_ROLES_KEY: ['ceph-monitor']},
+                     'osd': {test_mod.TEMPLATE_ROLES_KEY: ['ceph-osd']}}
+        inv = {'node-templates': templates}
+        ret = test_mod._get_node_template_names_for_role(inv,
+                                                         'ceph-monitor')
+        self.assertEqual(ret, ['mon'])
+        ret = test_mod._get_node_template_names_for_role(inv,
+                                                         'ceph-osd')
+        self.assertEqual(ret, ['osd'])
+
+        # Test multiple mon templates (controller and other)
+        mon_only = {test_mod.TEMPLATE_ROLES_KEY: ['ceph-monitor']}
+        templates = {'controllers': mon_only,
+                     'monType1': mon_only,
+                     'monType2': mon_only}
+        inv = {'node-templates': templates}
+        ret = test_mod._get_node_template_names_for_role(inv,
+                                                         'ceph-monitor')
+        self.assertItemsEqual(ret, ['controllers', 'monType1', 'monType2'])
+
+        # Test multiple mon templates without controllers in the picture
+        mon_only = {test_mod.TEMPLATE_ROLES_KEY: ['ceph-monitor']}
+        templates = {'monType1': mon_only,
+                     'monType2': mon_only}
+        inv = {'node-templates': templates}
+        ret = test_mod._get_node_template_names_for_role(inv,
+                                                         'ceph-monitor')
+        self.assertItemsEqual(ret, ['monType1', 'monType2'])
+
+        # Test multiple OSD templates without ceph-osd template in the picture
+        osd_only = {test_mod.TEMPLATE_ROLES_KEY: ['ceph-osd']}
+        templates = {'osdType1': osd_only,
+                     'osdType2': osd_only}
+        inv = {'node-templates': templates}
+        ret = test_mod._get_node_template_names_for_role(inv,
+                                                         'ceph-osd')
+        self.assertItemsEqual(ret, ['osdType1', 'osdType2'])
+
+    @mock.patch(TEST_MODULE_STRING + '._get_node_template_names_for_role')
+    def test_get_nodes_for_role(self, templs_for_roles):
+
+        nodes = {'noise': '',
+                 'noise2': '',
+                 'target1': ['n1', 'n2', 'n3'],
+                 'target2': ['n4'],
+                 'noise3': '',
+                 'target3': ['n5', 'n6']}
+
+        inventory = {'nodes': nodes}
+        # Test that if templates is passed it's used and
+        # _get_node_template_names_for_role is not called
+        ret = test_mod._get_nodes_for_role(inventory, 'junk', ['target1',
+                                                               'target2',
+                                                               'target3'])
+
+        self.assertEqual(templs_for_roles.call_count, 0)
+        self.assertItemsEqual(['n1', 'n2', 'n3', 'n4', 'n5', 'n6'], ret)
+        # Test getting only 2 targets
+        templs_for_roles.return_value = ['target2', 'target3']
+        ret = test_mod._get_nodes_for_role(inventory, 'junk')
+        templs_for_roles.assert_called_with(inventory, 'junk')
+        self.assertItemsEqual(['n4', 'n5', 'n6'], ret)
+
+        # Test getting single target
+        templs_for_roles.reset_mock()
+        templs_for_roles.return_value = ['target1']
+        ret = test_mod._get_nodes_for_role(inventory, 'junk')
+        templs_for_roles.assert_called_with(inventory, 'junk')
+        self.assertItemsEqual(['n1', 'n2', 'n3'], ret)
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
