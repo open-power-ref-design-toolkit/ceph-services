@@ -45,7 +45,8 @@ function append_disk_list
     typeset -i by_disk_name=0
 
     if [[ "$disk_name" == */dev/sd* ]] ||
-       [[ "$disk_name" == */dev/vd* ]]; then
+       [[ "$disk_name" == */dev/vd* ]] ||
+       [[ "$disk_name" == */dev/nvme* ]]; then
         by_disk_name=1
     fi
 
