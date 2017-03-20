@@ -18,19 +18,12 @@
 
   - name: Set starting values for device lists.
     set_fact:
-      ceph_osd_shortcut: {}
-      ds_shortcut: {}
       journal_devices: {}
       osd_devices: {}
 
-  - name: Set ceph_osd_shortcut.
-    set_fact:
-        ceph_osd_shortcut: "{{ node_templates['ceph-osd'] | default({}) }}"
-    when: node_templates['ceph-osd'] is defined
-
   - name: Set ds_shortcut.
     set_fact:
-        ds_shortcut: "{{ ceph_osd_shortcut['domain-settings'] | default({}) }}"
+        ds_shortcut: "{{ node_templates[template]['domain-settings'] | default({}) }}"
 
   - name: Set journal_devices.
     set_fact:
@@ -44,5 +37,6 @@
     debug:
       msg: "{{ item }}"
     with_items:
+      - "ds_shortcut={{ ds_shortcut }}"
       - "journal_devices={{ journal_devices }}"
       - "osd_devices={{ osd_devices }}"
