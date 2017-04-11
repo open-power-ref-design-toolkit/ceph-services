@@ -3,3 +3,5 @@
 .tox
 *.egg*
 .testrepository/
+.gitsrc
+.diffs

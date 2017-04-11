@@ -1,0 +1,14 @@
+diff -Naur a/opt/ceph-ansible/roles/ceph-mon/tasks/ceph_keys.yml b/opt/ceph-ansible/roles/ceph-mon/tasks/ceph_keys.yml
+--- a/opt/ceph-ansible/roles/ceph-mon/tasks/ceph_keys.yml	2017-04-11 11:46:21.566441073 -0500
++++ b/opt/ceph-ansible/roles/ceph-mon/tasks/ceph_keys.yml	2017-04-11 11:45:44.602441252 -0500
+@@ -16,7 +16,9 @@
+     - groups[restapi_group_name] is defined
+ 
+ - include: rbd_pool.yml
+-  when: ceph_conf_overrides.global.osd_pool_default_pg_num is defined
++  when:
++    - ceph_conf_overrides.global is defined
++    - ceph_conf_overrides.global.osd_pool_default_pg_num is defined
+ 
+ - include: openstack_config.yml
+   when: openstack_config
