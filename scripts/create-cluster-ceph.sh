@@ -34,7 +34,7 @@ SCRIPTS_DIR=$(dirname $0)
 source $SCRIPTS_DIR/process-args.sh
 
 pushd playbooks >/dev/null 2>&1
-DY_INVENTORY_DIR="${GENESIS_DIR}/scripts/python/yggdrasil"
+DY_INVENTORY_DIR="${GENESIS_DIR}/scripts/python"
 ansible-playbook -i ${DY_INVENTORY_DIR}/inventory.py pre-deploy.yml
 rc=$?
 if [ $rc != 0 ]; then
