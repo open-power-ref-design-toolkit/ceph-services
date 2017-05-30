@@ -212,6 +212,19 @@ class TestGenerateCephAnsibleInput(unittest.TestCase):
         self.assertFalse(verify_vars['delete_default_pool'])
         self.assertEquals(verify_vars['monitor_interface'], 'jamesbond')
 
+        # Test deployment environment
+        test_env = {'a': 'b',
+                    'c': 'd'}
+        inventory = {'reference-architecture': ['ceph-standalone'],
+                     'networks': {'ceph-public-storage': {'bond':
+                                                          'jamesbond'}},
+                     'deployment-environment': test_env}
+        verify_vars = test_mod._init_default_values(inventory, False)
+        self.assertFalse(verify_vars['delete_default_pool'])
+        self.assertEquals(verify_vars['monitor_interface'], 'jamesbond')
+        self.assertEqual(verify_vars['deployment_environment_variables'],
+                         test_env)
+
     def test_get_storage_network(self):
         inventory = {'reference-architecture': ['ceph-standalone']}
         self.assertEqual(test_mod._get_storage_network(inventory),

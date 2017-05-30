@@ -101,6 +101,11 @@ def _init_default_values(inventory, openstack_config):
     if not mon_interface:
         mon_interface = storage_net.get('eth-port')
     config_vars['monitor_interface'] = mon_interface
+
+    dep_env = inventory.get('deployment-environment')
+    if dep_env:
+        config_vars['deployment_environment_variables'] = dep_env
+
     if not openstack_config:
             config_vars['delete_default_pool'] = False
             return config_vars
