@@ -20,4 +20,5 @@
   hosts: ceph-osd
   roles:
     - role: "ceph_hosts"
+  environment: "{{ deployment_environment | default({}) }}"
 

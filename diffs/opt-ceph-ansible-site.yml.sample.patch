@@ -1,0 +1,78 @@
+diff -Naur a/opt/ceph-ansible/site.yml.sample b/opt/ceph-ansible/site.yml.sample
+--- a/opt/ceph-ansible/site.yml.sample	2017-04-13 15:17:07.684836197 -0500
++++ b/opt/ceph-ansible/site.yml.sample	2017-05-30 13:52:31.628458188 -0500
+@@ -37,63 +37,74 @@
+     - name: install required packages for Fedora > 23
+       raw: sudo dnf -y install python2-dnf libselinux-python ntp
+       when: ansible_distribution == 'Fedora' and ansible_distribution_major_version|int >= 23
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: mons
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-mon
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: agents
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-agent
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: osds
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-osd
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: mdss
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-mds
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: rgws
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-rgw
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: nfss
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-nfs
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: restapis
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-restapi
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: rbdmirrors
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-rbd-mirror
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: clients
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-client
++  environment: "{{ deployment_environment_variables | default({}) }}"
+ 
+ - hosts: iscsigws
+   gather_facts: false
+   become: True
+   roles:
+   - ceph-iscsi-gw
++  environment: "{{ deployment_environment_variables | default({}) }}"

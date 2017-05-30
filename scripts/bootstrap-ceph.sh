@@ -36,7 +36,7 @@ source $SCRIPTS_DIR/process-args.sh
 INSTALL=False
 if [ ! -d $CEPH_DIR ]; then
     echo "Installing ceph-ansible..."
-    git-clone git://github.com/ceph/ceph-ansible $CEPH_ANSIBLE_TAG $CEPH_DIR
+    git-clone https://github.com/ceph/ceph-ansible $CEPH_ANSIBLE_TAG $CEPH_DIR
     INSTALL=True
 fi
 
