@@ -70,8 +70,8 @@ function adjust_disk_list
     fi
 
     # Initially those names may be unsorted but
-    # we want to sort them by sdX and vdX name.
-    cat ${prep_file} |  grep -E "^sd|^vd" | uniq | sort >${sort_file}
+    # we want to sort them by sdX, vdX, or nvmeX name.
+    cat ${prep_file} |  grep -E "^sd|^vd|^nvme" | uniq | sort >${sort_file}
 }
 
 function read_adjusted_disk_list
@@ -155,8 +155,8 @@ function zap_disk
     typeset dev_end
     typeset gpt_end
 
-    sgdisk --zap-all --$device
-    sgdisk --clear --mbrtogpt --$device
+    sgdisk --zap-all $device
+    sgdisk --clear --mbrtogpt $device
     dev_end=`blockdev --getsz $device`
     ((gpt_end=$dev_end-100))
 
